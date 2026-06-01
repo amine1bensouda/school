@@ -49,11 +49,12 @@ export function formatPrismaDbError(error: unknown): DbErrorInfo {
     return {
       kind,
       message:
-        'Schéma de base non à jour : exécutez les migrations après git pull (fonction sync).',
+        'Schéma Prisma non aligné (ex. colonne quizzes.order ou tables sync manquantes).',
       hints: [
-        'Sur le VPS : cd /var/www/school',
-        'npx prisma migrate deploy',
-        'npm run build && pm2 restart <processus-school>',
+        'Sur le VPS : cd /var/www/school && git pull',
+        'chmod +x scripts/vps-migrate-sync.sh && ./scripts/vps-migrate-sync.sh',
+        '(Ne pas utiliser migrate deploy seul si erreur P3005 — le script fait le baseline)',
+        'npm run build && pm2 restart school',
         'npm run health:db',
       ],
     };
