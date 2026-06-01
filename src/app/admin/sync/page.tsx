@@ -131,8 +131,8 @@ export default async function AdminSyncPage() {
   } catch (error) {
     return (
       <SyncDatabaseError
-        appLabel="the-school (gratuit)"
-        message={formatPrismaDbError(error)}
+        appLabel="The School of Mathematics (gratuit)"
+        errorInfo={formatPrismaDbError(error)}
       />
     );
   }
