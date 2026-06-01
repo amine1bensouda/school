@@ -10,7 +10,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "quizzes_source_quiz_id_key" ON "quizzes"("sou
 CREATE INDEX IF NOT EXISTS "quizzes_is_enabled_idx" ON "quizzes"("is_enabled");
 
 ALTER TABLE "questions" ADD COLUMN IF NOT EXISTS "source_question_id" TEXT;
-CREATE INDEX IF NOT EXISTS "questions_quiz_id_source_question_id_idx" ON "questions"("quiz_id", "source_question_id");
+CREATE INDEX IF NOT EXISTS "questions_quizId_source_question_id_idx" ON "questions"("quizId", "source_question_id");
 
 ALTER TABLE "answers" ADD COLUMN IF NOT EXISTS "source_answer_id" TEXT;
 
