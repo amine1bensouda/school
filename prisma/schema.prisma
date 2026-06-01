@@ -82,6 +82,12 @@ model Quiz {
   maxQuestions     Int?
   featuredImage    String?
   featuredImageUrl String?
+  order            Int            @default(0)
+  sourceQuizId     String?        @unique @map("source_quiz_id")
+  sourceSyncedAt   DateTime?      @map("source_synced_at")
+  sourcePayloadHash String?       @map("source_payload_hash")
+  isEnabled        Boolean        @default(true) @map("is_enabled")
+  lockLocalEdits   Boolean        @default(false) @map("lock_local_edits")
   questions        Question[]
   quizAttempts     QuizAttempt[]
   createdAt        DateTime       @default(now())
@@ -91,38 +97,55 @@ model Quiz {
   @@index([slug])
   @@index([moduleId])
   @@index([moduleId, createdAt(sort: Desc)])
+  @@index([isEnabled])
+}
+
+model SyncLog {
+  id           String   @id @default(cuid())
+  sourceQuizId String   @map("source_quiz_id")
+  localQuizId  String?  @map("local_quiz_id")
+  action       String
+  status       String
+  details      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("sync_logs")
+  @@index([sourceQuizId, createdAt(sort: Desc)])
 }
 
 model Question {
-  id          String   @id @default(cuid())
-  quizId      String
-  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  text        String
-  type        String   @default("multiple_choice")
-  points      Int      @default(1)
-  explanation String?
-  timeLimit   Int?
-  order       Int      @default(0)
-  answers     Answer[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  quizId           String
+  quiz             Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  sourceQuestionId String?  @map("source_question_id")
+  text             String
+  type             String   @default("multiple_choice")
+  points           Int      @default(1)
+  explanation      String?
+  timeLimit        Int?
+  order            Int      @default(0)
+  answers          Answer[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@map("questions")
   @@index([quizId])
   @@index([quizId, order])
+  @@index([quizId, sourceQuestionId])
 }
 
 model Answer {
-  id          String   @id @default(cuid())
-  questionId  String
-  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  text        String
-  isCorrect   Boolean  @default(false)
-  explanation String?
-  imageUrl    String?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  questionId     String
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  sourceAnswerId String?  @map("source_answer_id")
+  text           String
+  isCorrect      Boolean  @default(false)
+  explanation    String?
+  imageUrl       String?
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("answers")
   @@index([questionId])

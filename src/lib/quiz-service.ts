@@ -11,6 +11,7 @@ import { getPublishedQuizListData, QUIZZES_CACHE_TAG } from './cache';
 
 /** Filtre partagé : quiz visibles (cours publié ou sans module) — stats, listes, etc. */
 export const PUBLISHED_QUIZ_WHERE: Prisma.QuizWhereInput = {
+  isEnabled: true,
   OR: [
     {
       module: {
