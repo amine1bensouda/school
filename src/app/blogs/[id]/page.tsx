@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import { getBlogPostFromDB } from '@/lib/blog-data';
+import CommentsSection from '@/components/Comments/CommentsSection';
 
 export const revalidate = 900;
 
@@ -80,6 +81,8 @@ export default async function BlogPostPage({ params }: PageProps) {
             prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
+
+        <CommentsSection targetType="blog" targetSlug={post.slug} />
       </div>
     </div>
   );

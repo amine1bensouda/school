@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
+import CommentsSection from '@/components/Comments/CommentsSection';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
@@ -219,6 +220,10 @@ export default async function QuizPage({ params }: PageProps) {
           </div>
 
         <QuizPlayer quiz={quiz} />
+
+          <div className="container mx-auto px-4 pb-12">
+            <CommentsSection targetType="quiz" targetSlug={quiz.slug} />
+          </div>
         </div>
       </div>
     </>

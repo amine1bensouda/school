@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { comparePassword } from '@/lib/auth-utils';
-import { cookies } from 'next/headers';
-
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -32,13 +30,23 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.trim().toLowerCase() },
     });
 
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
+      );
+    }
+
+    if (user.emailVerified === false) {
+      return NextResponse.json(
+        {
+          error:
+            'Please verify your email before signing in. Request a new code from the registration page.',
+        },
+        { status: 403 }
       );
     }
 
@@ -53,21 +61,8 @@ export async function POST(request: NextRequest) {
 
     // Créer une session (utiliser un token simple pour l'instant)
     // En production, utiliser JWT ou NextAuth.js
-    const sessionToken = `${user.id}-${Date.now()}`;
-    
-    // Stocker le token dans un cookie
-    const cookieStore = await cookies();
-    
-    // Sur Vercel, utiliser secure: true car HTTPS est toujours activé
-    const isProduction = Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production';
-    
-    cookieStore.set('session_token', sessionToken, {
-      httpOnly: true,
-      secure: isProduction, // true sur Vercel (HTTPS)
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 jours
-      path: '/',
-    });
+    const { setUserSessionCookie } = await import('@/lib/session-cookie');
+    await setUserSessionCookie(user.id);
 
     // Retourner les informations utilisateur (sans le mot de passe)
     return NextResponse.json({

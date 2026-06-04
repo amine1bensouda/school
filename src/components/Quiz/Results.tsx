@@ -6,6 +6,7 @@ import type { QuizResults, Quiz, Question } from '@/lib/types';
 import { getAllQuiz } from '@/lib/wordpress';
 import { trackSimilarQuizClick } from '@/lib/analytics';
 import { getCurrentUser } from '@/lib/auth';
+import { clearQuizSession } from '@/lib/quiz-session-storage';
 
 interface ResultsProps {
   results: QuizResults;
@@ -227,7 +228,7 @@ export default function Results({
               onClick={(e) => {
                 // Nettoyer la progression sauvegardée avant de refaire le quiz
                 if (quizId) {
-                  localStorage.removeItem(`quiz-progress-${quizId}`);
+                  clearQuizSession(quizId);
                 }
               }}
               className="flex-1 btn-primary text-center py-4 text-lg"

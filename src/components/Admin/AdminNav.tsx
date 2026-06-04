@@ -31,6 +31,7 @@ export default function AdminNav() {
     { href: '/admin/sync', label: 'Sync premium', icon: '🔄' },
     { href: '/admin/blogs', label: 'Blogs', icon: '📰' },
     { href: '/admin/pages', label: 'Pages', icon: '📄' },
+    { href: '/admin/comments', label: 'Commentaires', icon: '💬' },
   ];
 
   return (

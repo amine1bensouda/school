@@ -153,16 +153,53 @@ model Answer {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  name         String
-  password     String
-  quizAttempts QuizAttempt[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String
+  password      String
+  emailVerified Boolean       @default(true)
+  quizAttempts  QuizAttempt[]
+  comments      Comment[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@map("users")
   @@index([email])
+}
+
+model RegistrationVerification {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  codeHash     String
+  expiresAt    DateTime
+  attempts     Int      @default(0)
+  lastSentAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("registration_verifications")
+  @@index([expiresAt])
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  targetType  String
+  targetSlug  String
+  authorName  String
+  authorEmail String?
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  content     String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("comments")
+  @@index([targetType, targetSlug])
+  @@index([status])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 model BlogPost {

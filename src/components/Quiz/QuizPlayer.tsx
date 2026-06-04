@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Quiz, Question } from '@/lib/types';
 import type { QuizResults } from '@/lib/types';
 import QuestionComponent from './Question';
@@ -9,6 +9,16 @@ import QuizSidebar from './QuizSidebar';
 import { shuffleArray } from '@/lib/utils';
 import { trackQuizStart, trackAnswerSelect, trackQuizComplete } from '@/lib/analytics';
 import { saveQuizAttempt } from '@/lib/auth-client';
+import {
+  type QuizSessionData,
+  loadQuizSession,
+  saveQuizSession,
+  clearQuizSession,
+  getQuizTimeRemaining,
+  getQuestionTimeRemaining,
+  orderQuestionsBySession,
+  buildQuestionOrder,
+} from '@/lib/quiz-session-storage';
 
 interface QuizPlayerProps {
   quiz: Quiz;
@@ -22,13 +32,14 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const [showResults, setShowResults] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [results, setResults] = useState<QuizResults | null>(null);
-  const [startTime] = useState(Date.now());
+  const [sessionStartedAt, setSessionStartedAt] = useState(Date.now());
+  const sessionRef = useRef<QuizSessionData | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null); // Timer pour la question actuelle
   const [quizTimeRemaining, setQuizTimeRemaining] = useState<number | null>(null); // Timer global pour le quiz
-  const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+  const [isSessionReady, setIsSessionReady] = useState(false);
 
     // Initialiser les questions et charger la progression sauvegardée
   useEffect(() => {
@@ -69,117 +80,83 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       });
     }
     
-    // Mélanger les questions si l'ordre est aléatoire
-    if (quiz.acf?.ordre_questions === 'Aleatoire') {
-      setQuestions(shuffleArray(quizQuestions));
-    } else {
-      setQuestions(quizQuestions);
-    }
+    const dureeEstimee = quiz.acf?.duree_estimee;
+    const quizDurationSeconds =
+      dureeEstimee && dureeEstimee > 0 ? dureeEstimee * 60 : 0;
+    const isRandomOrder = quiz.acf?.ordre_questions === 'Aleatoire';
 
-    // Vérifier si on doit réinitialiser (paramètre URL ?reset=true)
-    // Vérifier que window existe (côté client uniquement)
     let shouldReset = false;
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       shouldReset = urlParams.get('reset') === 'true';
-      
       if (shouldReset) {
-        // Nettoyer la progression sauvegardée
-        localStorage.removeItem(`quiz-progress-${quiz.id}`);
-        localStorage.removeItem(`quiz-timer-${quiz.id}`);
-        localStorage.removeItem(`quiz-start-time-${quiz.id}`);
-        localStorage.removeItem(`quiz-flags-${quiz.id}`);
-        // Réinitialiser l'état
+        clearQuizSession(quiz.id);
         setCurrentQuestionIndex(0);
         setSelectedAnswers({});
         setQuizCompleted(false);
         setResults(null);
         setShowResults(false);
         setFlaggedQuestions(new Set());
-        // Nettoyer l'URL
         window.history.replaceState({}, '', window.location.pathname);
-      } else {
-        // Charger la progression sauvegardée seulement si on ne reset pas
-        const savedProgress = localStorage.getItem(`quiz-progress-${quiz.id}`);
-        if (savedProgress) {
-          try {
-            const progress = JSON.parse(savedProgress);
-            setCurrentQuestionIndex(progress.currentQuestionIndex || 0);
-            setSelectedAnswers(progress.selectedAnswers || {});
-          } catch (error) {
-            console.error('Error loading progress:', error);
-          }
-        }
-        
-        // Charger les questions marquées
-        const savedFlags = localStorage.getItem(`quiz-flags-${quiz.id}`);
-        if (savedFlags) {
-          try {
-            const flags = JSON.parse(savedFlags);
-            setFlaggedQuestions(new Set(flags));
-          } catch (error) {
-            console.error('Error loading flags:', error);
-          }
-        }
       }
     }
 
-    // Initialiser le timer global du quiz (en secondes)
-    // Si duree_estimee est vide, null, 0 ou non défini, le quiz fonctionne sans limite de temps
-    const dureeEstimee = quiz.acf?.duree_estimee;
-    if (dureeEstimee && dureeEstimee > 0) {
-      // Convertir les minutes en secondes
-      const quizDurationSeconds = dureeEstimee * 60;
-      
-      // Vérifier si on a un timer sauvegardé
-      if (typeof window !== 'undefined' && !shouldReset) {
-        const savedStartTime = localStorage.getItem(`quiz-start-time-${quiz.id}`);
-        const savedTimeRemaining = localStorage.getItem(`quiz-timer-${quiz.id}`);
-        
-        if (savedStartTime && savedTimeRemaining) {
-          try {
-            const startTimeSaved = parseInt(savedStartTime);
-            const timeRemainingSaved = parseInt(savedTimeRemaining);
-            const now = Date.now();
-            const elapsedSeconds = Math.floor((now - startTimeSaved) / 1000);
-            const remainingSeconds = timeRemainingSaved - elapsedSeconds;
-            
-            if (remainingSeconds > 0) {
-              // Continuer le timer depuis où il s'était arrêté
-              setQuizTimeRemaining(remainingSeconds);
-            } else {
-              // Le temps est écoulé, initialiser à 0
-              setQuizTimeRemaining(0);
-            }
-          } catch (error) {
-            if (process.env.NODE_ENV !== 'production') {
-              console.error('Error loading timer:', error);
-            }
-            setQuizTimeRemaining(quizDurationSeconds);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
-            }
-          }
-        } else {
-          // Pas de timer sauvegardé, initialiser normalement
-          setQuizTimeRemaining(quizDurationSeconds);
-          // Sauvegarder l'heure de début
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
-          }
+    let orderedQuestions: Question[] = isRandomOrder
+      ? shuffleArray(quizQuestions)
+      : [...quizQuestions];
+
+    let session: QuizSessionData;
+
+    if (!shouldReset && typeof window !== 'undefined') {
+      const saved = loadQuizSession(quiz.id);
+      if (saved) {
+        session = saved;
+        orderedQuestions = orderQuestionsBySession(quizQuestions, saved.questionOrder);
+        if (orderedQuestions.length === 0) {
+          orderedQuestions = isRandomOrder
+            ? shuffleArray(quizQuestions)
+            : [...quizQuestions];
         }
+        setCurrentQuestionIndex(
+          Math.min(saved.currentQuestionIndex, Math.max(orderedQuestions.length - 1, 0))
+        );
+        setSelectedAnswers(saved.selectedAnswers || {});
+        setFlaggedQuestions(new Set(saved.flaggedQuestions || []));
+        setSessionStartedAt(saved.startedAt);
       } else {
-        // Reset ou première fois, initialiser normalement
-        setQuizTimeRemaining(quizDurationSeconds);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
-        }
+        session = {
+          version: 1,
+          startedAt: Date.now(),
+          durationSeconds: quizDurationSeconds,
+          currentQuestionIndex: 0,
+          selectedAnswers: {},
+          flaggedQuestions: [],
+          questionOrder: buildQuestionOrder(orderedQuestions),
+        };
+        setSessionStartedAt(session.startedAt);
+        saveQuizSession(quiz.id, session);
       }
     } else {
-      setQuizTimeRemaining(null);
+      session = {
+        version: 1,
+        startedAt: Date.now(),
+        durationSeconds: quizDurationSeconds,
+        currentQuestionIndex: 0,
+        selectedAnswers: {},
+        flaggedQuestions: [],
+        questionOrder: buildQuestionOrder(orderedQuestions),
+      };
+      setSessionStartedAt(session.startedAt);
+      if (typeof window !== 'undefined') {
+        saveQuizSession(quiz.id, session);
+      }
     }
 
-    // Track le début du quiz
+    sessionRef.current = session;
+    setQuestions(orderedQuestions);
+    setQuizTimeRemaining(getQuizTimeRemaining(session));
+    setIsSessionReady(true);
+
     trackQuizStart(quiz.id, quiz.title.rendered.replace(/<[^>]*>/g, ''));
   }, [quiz]);
 
@@ -324,7 +301,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       });
     });
 
-    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+    const timeSpent = Math.floor((Date.now() - sessionStartedAt) / 1000);
     const percentage = Math.round((correctAnswers / totalQuestions) * 100);
     const minimumScore = quiz.acf?.score_minimum || 70;
 
@@ -345,7 +322,9 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
 
     setResults(quizResults);
     setQuizCompleted(true);
-    
+    clearQuizSession(quiz.id);
+    sessionRef.current = null;
+
     // Save quiz attempt for logged-in users
     try {
       // Récupérer l'ID string du quiz depuis Prisma via son slug
@@ -395,78 +374,103 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       quizResults.timeSpent
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questions, selectedAnswers, startTime, quiz, quizTimeRemaining, totalQuestions]);
+  }, [questions, selectedAnswers, sessionStartedAt, quiz, quizTimeRemaining, totalQuestions]);
   // Note: correctAnswer est une variable locale dans le forEach, pas besoin dans les dépendances
 
-  // Gérer le timer global du quiz
+  // Si le temps était déjà écoulé avant le refresh, terminer le quiz
   useEffect(() => {
-    if (quizTimeRemaining === null || quizCompleted) return;
+    if (!isSessionReady || quizCompleted) return;
+    const session = sessionRef.current;
+    if (
+      session?.durationSeconds &&
+      session.durationSeconds > 0 &&
+      getQuizTimeRemaining(session) === 0
+    ) {
+      calculateResults();
+    }
+  }, [isSessionReady, quizCompleted, calculateResults]);
+
+  // Timer global : recalcul depuis l'heure de fin absolue (persiste après refresh)
+  useEffect(() => {
+    if (!isSessionReady || quizCompleted) return;
+    const session = sessionRef.current;
+    if (!session?.durationSeconds) return;
 
     const interval = setInterval(() => {
-      setQuizTimeRemaining((prev) => {
-        if (prev === null || prev <= 0) {
-          clearInterval(interval);
-          // Le temps est écoulé, fermer automatiquement le quiz
-          if (!quizCompleted) {
-            console.log('⏱️ Temps écoulé ! Fermeture automatique du quiz...');
-            // Nettoyer le timer sauvegardé
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem(`quiz-timer-${quiz.id}`);
-              localStorage.removeItem(`quiz-start-time-${quiz.id}`);
-            }
-            calculateResults();
-          }
-          return 0;
+      const session = sessionRef.current;
+      if (!session) return;
+
+      const remaining = getQuizTimeRemaining(session);
+      setQuizTimeRemaining(remaining);
+
+      if (remaining !== null && remaining <= 0) {
+        clearInterval(interval);
+        if (!quizCompleted) {
+          calculateResults();
         }
-        const newTime = prev - 1;
-        // Sauvegarder le temps restant dans localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`quiz-timer-${quiz.id}`, newTime.toString());
-        }
-        return newTime;
-      });
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [quizTimeRemaining, quizCompleted, calculateResults, quiz.id]);
+  }, [isSessionReady, quizCompleted, calculateResults, quiz.id]);
 
-  // Gérer le timer pour la question actuelle
+  // Timer par question (persiste après refresh)
   useEffect(() => {
-    if (!currentQuestion) return;
+    if (!isSessionReady || !currentQuestion || !sessionRef.current) return;
 
-    const tempsLimite = currentQuestion.temps_limite || currentQuestion.acf?.temps_limite;
-    
+    const tempsLimite =
+      currentQuestion.temps_limite || currentQuestion.acf?.temps_limite;
+    const session = sessionRef.current;
+    const idx = currentQuestionIndex;
+
     if (tempsLimite && tempsLimite > 0) {
-      setTimeRemaining(tempsLimite);
-      setQuestionStartTime(Date.now());
-      
+      let remaining = getQuestionTimeRemaining(session, idx);
+      if (remaining === null) {
+        const endsAt = Date.now() + tempsLimite * 1000;
+        session.questionTimers = {
+          ...session.questionTimers,
+          [idx]: { endsAt },
+        };
+        saveQuizSession(quiz.id, session);
+        remaining = tempsLimite;
+      }
+      setTimeRemaining(remaining);
+
       const interval = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev === null || prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
+        const s = sessionRef.current;
+        if (!s) return;
+        const r = getQuestionTimeRemaining(s, idx);
+        setTimeRemaining(r);
+        if (r !== null && r <= 0) clearInterval(interval);
       }, 1000);
 
       return () => clearInterval(interval);
-    } else {
-      setTimeRemaining(null);
     }
-  }, [currentQuestion, currentQuestionIndex]);
 
-  // Sauvegarder la progression dans localStorage
+    setTimeRemaining(null);
+  }, [isSessionReady, currentQuestion, currentQuestionIndex, quiz.id]);
+
+  // Sauvegarder la session (réponses, question courante, drapeaux)
   useEffect(() => {
-    if (questions.length > 0) {
-      const progress = {
-        currentQuestionIndex,
-        selectedAnswers,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(`quiz-progress-${quiz.id}`, JSON.stringify(progress));
-    }
-  }, [currentQuestionIndex, selectedAnswers, quiz.id, questions.length]);
+    if (!isSessionReady || !sessionRef.current || questions.length === 0) return;
+
+    const updated: QuizSessionData = {
+      ...sessionRef.current,
+      currentQuestionIndex,
+      selectedAnswers,
+      flaggedQuestions: Array.from(flaggedQuestions),
+      questionOrder: buildQuestionOrder(questions),
+    };
+    sessionRef.current = updated;
+    saveQuizSession(quiz.id, updated);
+  }, [
+    isSessionReady,
+    currentQuestionIndex,
+    selectedAnswers,
+    flaggedQuestions,
+    quiz.id,
+    questions,
+  ]);
 
   const handleAnswerSelect = (answerKey: string) => {
     setSelectedAnswers({
@@ -485,7 +489,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     // Permettre de passer même sans réponse sélectionnée
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setQuestionStartTime(Date.now());
     } else {
       // Dernière question, calculer les résultats
       await calculateResults();
@@ -495,7 +498,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const handleQuestionSelect = (index: number) => {
     if (index >= 0 && index < totalQuestions) {
       setCurrentQuestionIndex(index);
-      setQuestionStartTime(Date.now());
     }
   };
 
@@ -507,10 +509,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       } else {
         newFlags.add(index);
       }
-      // Sauvegarder dans localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`quiz-flags-${quiz.id}`, JSON.stringify(Array.from(newFlags)));
-      }
       return newFlags;
     });
   };
@@ -518,7 +516,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
-      setQuestionStartTime(Date.now());
     }
   };
 
