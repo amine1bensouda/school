@@ -1,10 +1,24 @@
 import dns from 'dns';
+import { lookup } from 'dns/promises';
 import nodemailer from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
-// VPS sans IPv6 : éviter ENETUNREACH vers smtp.gmail.com en IPv6
+// VPS sans IPv6 : préférer IPv4 pour toute résolution DNS
 if (typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first');
+}
+
+/** Résout le hostname SMTP en IPv4 (évite ENETUNREACH sur VPS sans IPv6). */
+async function resolveSmtpHostIpv4(hostname: string): Promise<string> {
+  const override = process.env.SMTP_HOST_IPV4?.trim();
+  if (override) return override;
+
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+    return hostname;
+  }
+
+  const { address } = await lookup(hostname, { family: 4 });
+  return address;
 }
 
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'The School of Mathematics';
@@ -69,14 +83,20 @@ export async function sendVerificationCodeEmail(
     );
   }
 
+  const smtpHostname = smtp.host;
+  const smtpHostIpv4 = await resolveSmtpHostIpv4(smtpHostname);
+
   const transportOptions: SMTPTransport.Options = {
-    host: smtp.host,
+    host: smtpHostIpv4,
     port: smtp.port,
     secure: smtp.secure,
     requireTLS: smtp.port === 587,
     auth: {
       user: smtp.auth.user,
       pass: smtp.auth.pass,
+    },
+    tls: {
+      servername: smtpHostname,
     },
     connectionTimeout: 20_000,
     greetingTimeout: 20_000,

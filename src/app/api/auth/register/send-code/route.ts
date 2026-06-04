@@ -75,8 +75,12 @@ export async function POST(request: NextRequest) {
           : undefined,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to send code';
-    const status = message.includes('wait') ? 429 : 500;
+    let message = error instanceof Error ? error.message : 'Failed to send code';
+    if (message.includes('ENETUNREACH') || message.includes('ESOCKET')) {
+      message =
+        'Impossible de joindre le serveur e-mail. Réessayez dans quelques minutes ou contactez le support.';
+    }
+    const status = message.includes('wait') || message.includes('Attendez') ? 429 : 500;
     console.error('POST /api/auth/register/send-code:', error);
     return NextResponse.json({ error: message }, { status });
   }
