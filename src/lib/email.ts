@@ -1,5 +1,6 @@
 import dns from 'dns';
 import nodemailer from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 // VPS sans IPv6 : éviter ENETUNREACH vers smtp.gmail.com en IPv6
 if (typeof dns.setDefaultResultOrder === 'function') {
@@ -68,18 +69,21 @@ export async function sendVerificationCodeEmail(
     );
   }
 
-  const transporter = nodemailer.createTransport({
+  const transportOptions: SMTPTransport.Options = {
     host: smtp.host,
     port: smtp.port,
     secure: smtp.secure,
     requireTLS: smtp.port === 587,
-    auth: smtp.auth,
-    // Forcer IPv4 (erreur courante sur VPS : ENETUNREACH vers adresse IPv6 Gmail)
-    family: 4,
+    auth: {
+      user: smtp.auth.user,
+      pass: smtp.auth.pass,
+    },
     connectionTimeout: 20_000,
     greetingTimeout: 20_000,
     socketTimeout: 30_000,
-  });
+  };
+
+  const transporter = nodemailer.createTransport(transportOptions);
 
   await transporter.sendMail({
     from: smtp.from,
