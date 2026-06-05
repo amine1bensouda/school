@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import MathRenderer from '@/components/Quiz/MathRenderer';
+import { InlineMath, BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
+import { isBlockMathInHtml } from '@/lib/math-render-utils';
 
 interface HtmlWithMathRendererProps {
   html: string;
@@ -61,7 +63,7 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
         start: match.index,
         end: match.index + match[0].length,
         formula: match[1].trim(),
-        isBlock: true,
+        isBlock: isBlockMathInHtml(remainingHtml, match.index, match.index + match[0].length),
       });
     }
     
@@ -185,14 +187,21 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
     <div ref={containerRef} className={`html-with-math-renderer ${className}`}>
       {parts.map((part, index) => {
         if (part.type === 'math') {
-          const formulaText = part.isBlock ? `$$${part.content}$$` : `$${part.content}$`;
-          return (
-            <MathRenderer
-              key={`math-${index}`}
-              text={formulaText}
-              className=""
-            />
-          );
+          try {
+            if (part.isBlock) {
+              return <BlockMath key={`math-${index}`} math={part.content} />;
+            }
+            return <InlineMath key={`math-${index}`} math={part.content} />;
+          } catch (error) {
+            console.warn('Erreur de rendu mathématique:', part.content, error);
+            return (
+              <span key={`math-${index}`}>
+                {part.isBlock ? '$$' : '$'}
+                {part.content}
+                {part.isBlock ? '$$' : '$'}
+              </span>
+            );
+          }
         }
         return (
           <span

@@ -399,3 +399,12 @@
 .blog-article-content .ql-ui {
   display: none;
 }
+
+/* Explications quiz : respecter les retours à la ligne Quill sans espacement excessif */
+.html-with-math-renderer p {
+  margin: 0 0 0.35em;
+}
+
+.html-with-math-renderer p:last-child {
+  margin-bottom: 0;
+}
