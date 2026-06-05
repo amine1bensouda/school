@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { InlineMath, BlockMath } from 'react-katex';
+import { useEffect, useMemo, useRef } from 'react';
+import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { isBlockMathInHtml } from '@/lib/math-render-utils';
 
@@ -10,160 +10,129 @@ interface HtmlWithMathRendererProps {
   className?: string;
 }
 
+interface MathSlot {
+  id: string;
+  formula: string;
+  block: boolean;
+}
+
+function buildHtmlWithMathPlaceholders(rawHtml: string): {
+  html: string;
+  mathSlots: MathSlot[];
+} {
+  if (!rawHtml.trim()) {
+    return { html: '', mathSlots: [] };
+  }
+
+  let html = rawHtml;
+
+  const imagePlaceholders: string[] = [];
+  html = html.replace(/<img([^>]+)src=["'](data:image\/[^"']+)["']([^>]*)>/gi, (match) => {
+    const placeholder = `__IMAGE_${imagePlaceholders.length}__`;
+    imagePlaceholders.push(match);
+    return placeholder;
+  });
+
+  html = html.replace(/&#36;/g, '$').replace(/&dollar;/g, '$');
+  html = html.replace(/\\\\/g, '\\');
+
+  const mathSlots: MathSlot[] = [];
+  const matches: Array<{ start: number; end: number; formula: string; block: boolean }> = [];
+
+  const blockMathRegex = /\$\$([\s\S]*?)\$\$/g;
+  let match: RegExpExecArray | null;
+  while ((match = blockMathRegex.exec(html)) !== null) {
+    matches.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      formula: match[1].trim(),
+      block: isBlockMathInHtml(html, match.index, match.index + match[0].length),
+    });
+  }
+
+  const inlineMathRegex = /(?<!\$)\$(?!\$)([^$]+?)\$(?!\$)/g;
+  while ((match = inlineMathRegex.exec(html)) !== null) {
+    const inBlock = matches.some(
+      (m) => match!.index >= m.start && match!.index < m.end
+    );
+    if (inBlock) continue;
+
+    const before = html.slice(0, match.index);
+    const lastOpen = before.lastIndexOf('<');
+    const lastClose = before.lastIndexOf('>');
+    if (lastOpen > lastClose) continue;
+
+    matches.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      formula: match[1].trim(),
+      block: false,
+    });
+  }
+
+  matches.sort((a, b) => b.start - a.start);
+
+  for (const m of matches) {
+    const id = `math-${mathSlots.length}`;
+    mathSlots.push({ id, formula: m.formula, block: m.block });
+    const spanClass = m.block ? 'math-ph math-ph-block' : 'math-ph math-ph-inline';
+    const placeholder = `<span class="${spanClass}" data-math-id="${id}"></span>`;
+    html = html.slice(0, m.start) + placeholder + html.slice(m.end);
+  }
+
+  imagePlaceholders.forEach((img, idx) => {
+    html = html.replace(`__IMAGE_${idx}__`, img);
+  });
+
+  return { html, mathSlots: mathSlots.reverse() };
+}
+
 /**
- * Composant pour rendre du HTML avec des images ET des formules LaTeX
- * Divise le contenu en parties HTML et parties mathématiques pour un rendu correct
+ * Rend le HTML Quill intact (sans couper les <p>) et hydrate les formules LaTeX.
  */
-export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithMathRendererProps) {
-  const [parts, setParts] = useState<Array<{ type: 'html' | 'math'; content: string; isBlock?: boolean }>>([]);
+export default function HtmlWithMathRenderer({
+  html,
+  className = '',
+}: HtmlWithMathRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { html: processedHtml, mathSlots } = useMemo(
+    () => buildHtmlWithMathPlaceholders(html),
+    [html]
+  );
 
   useEffect(() => {
-    if (!html) {
-      setParts([]);
-      return;
-    }
+    const root = containerRef.current;
+    if (!root) return;
 
-    const newParts: Array<{ type: 'html' | 'math'; content: string; isBlock?: boolean }> = [];
-    let remainingHtml = html;
-
-    // PROTÉGER les images base64 avant de traiter les formules
-    const imagePlaceholders: string[] = [];
-    let imageIndex = 0;
-    
-    const base64ImageRegex = /<img([^>]+)src=["'](data:image\/[^"']+)["']([^>]*)>/gi;
-    remainingHtml = remainingHtml.replace(base64ImageRegex, (match) => {
-      const placeholder = `__IMAGE_${imageIndex}__`;
-      imagePlaceholders[imageIndex] = match;
-      imageIndex++;
-      return placeholder;
-    });
-
-    // Décoder les entités HTML pour les dollars avant de chercher les formules
-    remainingHtml = remainingHtml.replace(/&#36;/g, '$').replace(/&dollar;/g, '$');
-    
-    // Déséchapper les backslashes échappés
-    remainingHtml = remainingHtml.replace(/\\\\/g, '\\');
-
-    // Trouver toutes les formules mathématiques
-    // Les formules peuvent être dans du HTML, donc on doit les chercher dans le HTML brut
-    // Pattern amélioré pour détecter les formules même dans du HTML
-    const blockMathRegex = /\$\$([\s\S]*?)\$\$/g;
-    // Pour les formules inline, éviter de capturer les dollars dans les attributs HTML
-    // Pattern amélioré: [^$<>]+ permet de capturer même si la formule est dans une balise HTML
-    const inlineMathRegex = /(?<!\$)\$(?!\$)([^$]+?)\$(?!\$)/g;
-    
-    const mathMatches: Array<{ start: number; end: number; formula: string; isBlock: boolean }> = [];
-    let match;
-    
-    // Trouver les formules en bloc d'abord (elles ont priorité)
-    blockMathRegex.lastIndex = 0;
-    while ((match = blockMathRegex.exec(remainingHtml)) !== null) {
-      mathMatches.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        formula: match[1].trim(),
-        isBlock: isBlockMathInHtml(remainingHtml, match.index, match.index + match[0].length),
-      });
-    }
-    
-    // Trouver les formules inline (qui ne sont pas dans les blocs)
-    inlineMathRegex.lastIndex = 0;
-    while ((match = inlineMathRegex.exec(remainingHtml)) !== null) {
-      // Vérifier que cette formule inline n'est pas déjà couverte par une formule en bloc
-      const isInBlock = mathMatches.some(m => match!.index >= m.start && match!.index < m.end);
-      if (!isInBlock) {
-        // Vérifier aussi que ce n'est pas dans une balise HTML (attribut src="...", etc.)
-        const beforeMatch = remainingHtml.substring(0, match.index);
-        const lastOpenTag = beforeMatch.lastIndexOf('<');
-        const lastCloseTag = beforeMatch.lastIndexOf('>');
-        const isInTag = lastOpenTag > lastCloseTag;
-        
-        if (!isInTag) {
-          mathMatches.push({
-            start: match.index,
-            end: match.index + match[0].length,
-            formula: match[1].trim(),
-            isBlock: false,
-          });
-        }
-      }
-    }
-    
-    // Trier par position
-    mathMatches.sort((a, b) => a.start - b.start);
-    
-    // Construire les parties
-    let processedIndex = 0;
-    mathMatches.forEach((mathMatch) => {
-      // Ajouter le HTML avant la formule
-      if (mathMatch.start > processedIndex) {
-        const htmlPart = remainingHtml.substring(processedIndex, mathMatch.start);
-        if (htmlPart.trim()) {
-          // RESTAURER les images dans cette partie HTML
-          let restoredHtml = htmlPart;
-          imagePlaceholders.forEach((img, idx) => {
-            restoredHtml = restoredHtml.replace(`__IMAGE_${idx}__`, img);
-          });
-          newParts.push({ type: 'html', content: restoredHtml });
-        }
-      }
-      
-      // Ajouter la formule
-      newParts.push({
-        type: 'math',
-        content: mathMatch.formula,
-        isBlock: mathMatch.isBlock,
-      });
-      
-      processedIndex = mathMatch.end;
-    });
-    
-    // Ajouter le HTML restant
-    if (processedIndex < remainingHtml.length) {
-      const htmlPart = remainingHtml.substring(processedIndex);
-      if (htmlPart.trim()) {
-        // RESTAURER les images dans cette partie HTML
-        let restoredHtml = htmlPart;
-        imagePlaceholders.forEach((img, idx) => {
-          restoredHtml = restoredHtml.replace(`__IMAGE_${idx}__`, img);
+    mathSlots.forEach(({ id, formula, block }) => {
+      const el = root.querySelector<HTMLElement>(`[data-math-id="${id}"]`);
+      if (!el) return;
+      try {
+        katex.render(formula, el, {
+          displayMode: block,
+          throwOnError: false,
         });
-        newParts.push({ type: 'html', content: restoredHtml });
+      } catch (error) {
+        console.warn('Erreur KaTeX:', formula, error);
+        el.textContent = block ? `$$${formula}$$` : `$${formula}$`;
       }
-    }
-    
-    // Si aucune formule trouvée, tout est HTML
-    if (newParts.length === 0 && html.trim()) {
-      let restoredHtml = remainingHtml;
-      imagePlaceholders.forEach((img, idx) => {
-        restoredHtml = restoredHtml.replace(`__IMAGE_${idx}__`, img);
-      });
-      newParts.push({ type: 'html', content: restoredHtml });
-    }
+    });
+  }, [processedHtml, mathSlots]);
 
-    setParts(newParts);
-  }, [html]);
-
-  // Gérer les erreurs de chargement d'image
   useEffect(() => {
-    if (!containerRef.current) return;
+    const root = containerRef.current;
+    if (!root) return;
 
-    const images = containerRef.current.querySelectorAll('img');
-    
+    const images = root.querySelectorAll('img');
     const handleImageError = (img: HTMLImageElement) => {
-      const src = img.src;
-      
-      if (src.startsWith('data:image/')) {
-        console.warn('Erreur de chargement d\'image base64:', src.substring(0, 100));
-        
-        const placeholder = document.createElement('div');
-        placeholder.className = 'image-error-placeholder';
-        placeholder.textContent = '⚠️ Image non disponible';
-        placeholder.style.cssText = 'padding: 20px; background: #fef3c7; border: 1px dashed #f59e0b; text-align: center; color: #92400e; border-radius: 8px; margin: 10px 0;';
-        
-        img.style.display = 'none';
-        img.parentNode?.insertBefore(placeholder, img.nextSibling);
-      }
+      if (!img.src.startsWith('data:image/')) return;
+      const placeholder = document.createElement('div');
+      placeholder.className = 'image-error-placeholder';
+      placeholder.textContent = '⚠️ Image non disponible';
+      placeholder.style.cssText =
+        'padding: 20px; background: #fef3c7; border: 1px dashed #f59e0b; text-align: center; color: #92400e; border-radius: 8px; margin: 10px 0;';
+      img.style.display = 'none';
+      img.parentNode?.insertBefore(placeholder, img.nextSibling);
     };
 
     images.forEach((img) => {
@@ -173,43 +142,15 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
         img.addEventListener('error', () => handleImageError(img), { once: true });
       }
     });
-
-    return () => {
-      images.forEach((img) => {
-        img.removeEventListener('error', () => handleImageError(img));
-      });
-    };
-  }, [parts]);
+  }, [processedHtml]);
 
   if (!html) return null;
 
   return (
-    <div ref={containerRef} className={`html-with-math-renderer ${className}`}>
-      {parts.map((part, index) => {
-        if (part.type === 'math') {
-          try {
-            if (part.isBlock) {
-              return <BlockMath key={`math-${index}`} math={part.content} />;
-            }
-            return <InlineMath key={`math-${index}`} math={part.content} />;
-          } catch (error) {
-            console.warn('Erreur de rendu mathématique:', part.content, error);
-            return (
-              <span key={`math-${index}`}>
-                {part.isBlock ? '$$' : '$'}
-                {part.content}
-                {part.isBlock ? '$$' : '$'}
-              </span>
-            );
-          }
-        }
-        return (
-          <span
-            key={`html-${index}`}
-            dangerouslySetInnerHTML={{ __html: part.content }}
-          />
-        );
-      })}
-    </div>
+    <div
+      ref={containerRef}
+      className={`html-with-math-renderer ${className}`}
+      dangerouslySetInnerHTML={{ __html: processedHtml }}
+    />
   );
 }

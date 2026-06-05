@@ -402,9 +402,24 @@
 
 /* Explications quiz : respecter les retours à la ligne Quill sans espacement excessif */
 .html-with-math-renderer p {
-  margin: 0 0 0.35em;
+  margin: 0 0 0.5em;
 }
 
 .html-with-math-renderer p:last-child {
   margin-bottom: 0;
+}
+
+.html-with-math-renderer .math-ph-inline {
+  display: inline;
+  vertical-align: baseline;
+}
+
+.html-with-math-renderer .math-ph-block {
+  display: block;
+  margin: 0.25em 0;
+  text-align: center;
+}
+
+.html-with-math-renderer .katex-display {
+  margin: 0.25em 0;
 }
