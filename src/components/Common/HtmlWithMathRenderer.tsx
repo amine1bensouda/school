@@ -1,138 +1,159 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
-import { isBlockMathInHtml } from '@/lib/math-render-utils';
+import { useEffect, useState, useRef } from 'react';
+import MathRenderer from '@/components/Quiz/MathRenderer';
+import { latexInDoubleDollarsShouldUseBlockDisplay } from '@/lib/utils';
 
 interface HtmlWithMathRendererProps {
   html: string;
   className?: string;
 }
 
-interface MathSlot {
-  id: string;
-  formula: string;
-  block: boolean;
-}
-
-function buildHtmlWithMathPlaceholders(rawHtml: string): {
-  html: string;
-  mathSlots: MathSlot[];
-} {
-  if (!rawHtml.trim()) {
-    return { html: '', mathSlots: [] };
-  }
-
-  let html = rawHtml;
-
-  const imagePlaceholders: string[] = [];
-  html = html.replace(/<img([^>]+)src=["'](data:image\/[^"']+)["']([^>]*)>/gi, (match) => {
-    const placeholder = `__IMAGE_${imagePlaceholders.length}__`;
-    imagePlaceholders.push(match);
-    return placeholder;
-  });
-
-  html = html.replace(/&#36;/g, '$').replace(/&dollar;/g, '$');
-  html = html.replace(/\\\\/g, '\\');
-
-  const mathSlots: MathSlot[] = [];
-  const matches: Array<{ start: number; end: number; formula: string; block: boolean }> = [];
-
-  const blockMathRegex = /\$\$([\s\S]*?)\$\$/g;
-  let match: RegExpExecArray | null;
-  while ((match = blockMathRegex.exec(html)) !== null) {
-    matches.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      formula: match[1].trim(),
-      block: isBlockMathInHtml(html, match.index, match.index + match[0].length),
-    });
-  }
-
-  const inlineMathRegex = /(?<!\$)\$(?!\$)([^$]+?)\$(?!\$)/g;
-  while ((match = inlineMathRegex.exec(html)) !== null) {
-    const inBlock = matches.some(
-      (m) => match!.index >= m.start && match!.index < m.end
-    );
-    if (inBlock) continue;
-
-    const before = html.slice(0, match.index);
-    const lastOpen = before.lastIndexOf('<');
-    const lastClose = before.lastIndexOf('>');
-    if (lastOpen > lastClose) continue;
-
-    matches.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      formula: match[1].trim(),
-      block: false,
-    });
-  }
-
-  matches.sort((a, b) => b.start - a.start);
-
-  for (const m of matches) {
-    const id = `math-${mathSlots.length}`;
-    mathSlots.push({ id, formula: m.formula, block: m.block });
-    const spanClass = m.block ? 'math-ph math-ph-block' : 'math-ph math-ph-inline';
-    const placeholder = `<span class="${spanClass}" data-math-id="${id}"></span>`;
-    html = html.slice(0, m.start) + placeholder + html.slice(m.end);
-  }
-
-  imagePlaceholders.forEach((img, idx) => {
-    html = html.replace(`__IMAGE_${idx}__`, img);
-  });
-
-  return { html, mathSlots: mathSlots.reverse() };
-}
-
 /**
- * Rend le HTML Quill intact (sans couper les <p>) et hydrate les formules LaTeX.
+ * Composant pour rendre du HTML avec des images ET des formules LaTeX
+ * Divise le contenu en parties HTML et parties mathématiques pour un rendu correct
  */
-export default function HtmlWithMathRenderer({
-  html,
-  className = '',
-}: HtmlWithMathRendererProps) {
+export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithMathRendererProps) {
+  const [parts, setParts] = useState<Array<{ type: 'html' | 'math'; content: string; isBlock?: boolean }>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { html: processedHtml, mathSlots } = useMemo(
-    () => buildHtmlWithMathPlaceholders(html),
-    [html]
-  );
 
   useEffect(() => {
-    const root = containerRef.current;
-    if (!root) return;
+    if (!html) {
+      setParts([]);
+      return;
+    }
 
-    mathSlots.forEach(({ id, formula, block }) => {
-      const el = root.querySelector<HTMLElement>(`[data-math-id="${id}"]`);
-      if (!el) return;
-      try {
-        katex.render(formula, el, {
-          displayMode: block,
-          throwOnError: false,
-        });
-      } catch (error) {
-        console.warn('Erreur KaTeX:', formula, error);
-        el.textContent = block ? `$$${formula}$$` : `$${formula}$`;
-      }
+    const newParts: Array<{ type: 'html' | 'math'; content: string; isBlock?: boolean }> = [];
+    let remainingHtml = html;
+
+    // PROTÉGER les images base64 avant de traiter les formules
+    const imagePlaceholders: string[] = [];
+    let imageIndex = 0;
+
+    const base64ImageRegex = /<img([^>]+)src=["'](data:image\/[^"']+)["']([^>]*)>/gi;
+    remainingHtml = remainingHtml.replace(base64ImageRegex, (match) => {
+      const placeholder = `__IMAGE_${imageIndex}__`;
+      imagePlaceholders[imageIndex] = match;
+      imageIndex++;
+      return placeholder;
     });
-  }, [processedHtml, mathSlots]);
+
+    // Décoder les entités HTML pour les dollars avant de chercher les formules
+    remainingHtml = remainingHtml.replace(/&#36;/g, '$').replace(/&dollar;/g, '$');
+
+    // Déséchapper les backslashes échappés
+    remainingHtml = remainingHtml.replace(/\\\\/g, '\\');
+
+    // Quill met chaque paragraphe dans <p>. Le découpage LaTeX produit alors des
+    // morceaux qui se terminent par un <p> implicite/refermé par le navigateur →
+    // saut de ligne avant/après la formule alors que l'éditeur est une seule ligne.
+    remainingHtml = remainingHtml
+      .replace(/<\/p>\s*<p[^>]*>/gi, '<br class="quiz-para-gap" />')
+      .replace(/<p[^>]*>/gi, '')
+      .replace(/<\/p>/gi, '');
+
+    const blockMathRegex = /\$\$([\s\S]*?)\$\$/g;
+    const inlineMathRegex = /(?<!\$)\$(?!\$)([^$]+?)\$(?!\$)/g;
+
+    const mathMatches: Array<{ start: number; end: number; formula: string; isBlock: boolean }> = [];
+    let match;
+
+    blockMathRegex.lastIndex = 0;
+    while ((match = blockMathRegex.exec(remainingHtml)) !== null) {
+      mathMatches.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        formula: match[1].trim(),
+        isBlock: true,
+      });
+    }
+
+    inlineMathRegex.lastIndex = 0;
+    while ((match = inlineMathRegex.exec(remainingHtml)) !== null) {
+      const isInBlock = mathMatches.some((m) => match!.index >= m.start && match!.index < m.end);
+      if (!isInBlock) {
+        const beforeMatch = remainingHtml.substring(0, match.index);
+        const lastOpenTag = beforeMatch.lastIndexOf('<');
+        const lastCloseTag = beforeMatch.lastIndexOf('>');
+        const isInTag = lastOpenTag > lastCloseTag;
+
+        if (!isInTag) {
+          mathMatches.push({
+            start: match.index,
+            end: match.index + match[0].length,
+            formula: match[1].trim(),
+            isBlock: false,
+          });
+        }
+      }
+    }
+
+    mathMatches.sort((a, b) => a.start - b.start);
+
+    let processedIndex = 0;
+    mathMatches.forEach((mathMatch) => {
+      if (mathMatch.start > processedIndex) {
+        const htmlPart = remainingHtml.substring(processedIndex, mathMatch.start);
+        if (htmlPart.trim()) {
+          let restoredHtml = htmlPart;
+          imagePlaceholders.forEach((img, idx) => {
+            restoredHtml = restoredHtml.replace(`__IMAGE_${idx}__`, img);
+          });
+          newParts.push({ type: 'html', content: restoredHtml });
+        }
+      }
+
+      newParts.push({
+        type: 'math',
+        content: mathMatch.formula,
+        isBlock:
+          mathMatch.isBlock && latexInDoubleDollarsShouldUseBlockDisplay(mathMatch.formula),
+      });
+
+      processedIndex = mathMatch.end;
+    });
+
+    if (processedIndex < remainingHtml.length) {
+      const htmlPart = remainingHtml.substring(processedIndex);
+      if (htmlPart.trim()) {
+        let restoredHtml = htmlPart;
+        imagePlaceholders.forEach((img, idx) => {
+          restoredHtml = restoredHtml.replace(`__IMAGE_${idx}__`, img);
+        });
+        newParts.push({ type: 'html', content: restoredHtml });
+      }
+    }
+
+    if (newParts.length === 0 && html.trim()) {
+      let restoredHtml = remainingHtml;
+      imagePlaceholders.forEach((img, idx) => {
+        restoredHtml = restoredHtml.replace(`__IMAGE_${idx}__`, img);
+      });
+      newParts.push({ type: 'html', content: restoredHtml });
+    }
+
+    setParts(newParts);
+  }, [html]);
 
   useEffect(() => {
-    const root = containerRef.current;
-    if (!root) return;
+    if (!containerRef.current) return;
 
-    const images = root.querySelectorAll('img');
+    const images = containerRef.current.querySelectorAll('img');
+
     const handleImageError = (img: HTMLImageElement) => {
-      if (!img.src.startsWith('data:image/')) return;
-      const placeholder = document.createElement('div');
-      placeholder.className = 'image-error-placeholder';
-      placeholder.textContent = '⚠️ Image non disponible';
-      placeholder.style.cssText =
-        'padding: 20px; background: #fef3c7; border: 1px dashed #f59e0b; text-align: center; color: #92400e; border-radius: 8px; margin: 10px 0;';
-      img.style.display = 'none';
-      img.parentNode?.insertBefore(placeholder, img.nextSibling);
+      const src = img.src;
+
+      if (src.startsWith('data:image/')) {
+        console.warn('Erreur de chargement d\'image base64:', src.substring(0, 100));
+
+        const placeholder = document.createElement('div');
+        placeholder.className = 'image-error-placeholder';
+        placeholder.textContent = '⚠️ Image non disponible';
+        placeholder.style.cssText = 'padding: 20px; background: #fef3c7; border: 1px dashed #f59e0b; text-align: center; color: #92400e; border-radius: 8px; margin: 10px 0;';
+
+        img.style.display = 'none';
+        img.parentNode?.insertBefore(placeholder, img.nextSibling);
+      }
     };
 
     images.forEach((img) => {
@@ -142,15 +163,39 @@ export default function HtmlWithMathRenderer({
         img.addEventListener('error', () => handleImageError(img), { once: true });
       }
     });
-  }, [processedHtml]);
+
+    return () => {
+      images.forEach((img) => {
+        img.removeEventListener('error', () => handleImageError(img));
+      });
+    };
+  }, [parts]);
 
   if (!html) return null;
 
   return (
     <div
       ref={containerRef}
-      className={`html-with-math-renderer ${className}`}
-      dangerouslySetInnerHTML={{ __html: processedHtml }}
-    />
+      className={`html-with-math-renderer quiz-rich-html ${className}`.trim()}
+    >
+      {parts.map((part, index) => {
+        if (part.type === 'math') {
+          const formulaText = part.isBlock ? `$$${part.content}$$` : `$${part.content}$`;
+          return (
+            <MathRenderer
+              key={`math-${index}`}
+              text={formulaText}
+              className=""
+            />
+          );
+        }
+        return (
+          <span
+            key={`html-${index}`}
+            dangerouslySetInnerHTML={{ __html: part.content }}
+          />
+        );
+      })}
+    </div>
   );
 }

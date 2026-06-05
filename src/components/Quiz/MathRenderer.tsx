@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { InlineMath, BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
-import { isBlockMathInPlainText } from '@/lib/math-render-utils';
+import { latexInDoubleDollarsShouldUseBlockDisplay } from '@/lib/utils';
 
 interface MathRendererProps {
   text: string;
@@ -43,7 +43,7 @@ function stripHtml(html: string): string {
   let cleaned = protectedHtml
     // Remplacer les balises de paragraphe par des sauts de ligne
     .replace(/<p[^>]*>/gi, ' ')
-    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
     // Remplacer les balises de saut de ligne
     .replace(/<br\s*\/?>/gi, '\n')
     // Remplacer les divs
@@ -290,7 +290,7 @@ export default function MathRenderer({ text, className = '', useMathJax = false 
       start: match.index,
       end: match.index + match[0].length,
       formula: formula,
-      isBlock: isBlockMathInPlainText(cleanText, match.index, match.index + match[0].length),
+      isBlock: latexInDoubleDollarsShouldUseBlockDisplay(formula),
     });
   }
 

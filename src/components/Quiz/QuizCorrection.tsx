@@ -4,24 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Quiz } from '@/lib/types';
+import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
 import MathRenderer from './MathRenderer';
 import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 import QuizCorrectionSidebar from './QuizCorrectionSidebar';
-
-function questionHasImages(text: string): boolean {
-  return Boolean(text && (text.includes('<img') || text.includes('data:image/')));
-}
-
-function contentHasHtml(text: string): boolean {
-  return Boolean(text && /<[a-z][\s\S]*>/i.test(text));
-}
-
-function renderRichText(text: string) {
-  if (contentHasHtml(text) || questionHasImages(text)) {
-    return <HtmlWithMathRenderer html={text} className="prose prose-lg max-w-none" />;
-  }
-  return <MathRenderer text={text} />;
-}
 
 interface QuizCorrectionProps {
   quiz: Quiz;
@@ -56,9 +42,39 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
     a.is_correct === 'yes' ||
     a.correct === true
   );
-  const questionText = currentQuestion.texte_question || currentQuestion.title?.rendered || '';
+  let questionText = currentQuestion.texte_question || currentQuestion.title?.rendered || '';
+  const qAny = currentQuestion as Record<string, unknown>;
+  if (!questionText || (typeof questionText === 'string' && questionText.match(/^(a:\d+:\{|s:\d+:|O:\d+:|i:\d+|b:[01]|d:|N;)/))) {
+    questionText =
+      (qAny.question_title as string) ||
+      (qAny.question_name as string) ||
+      (qAny.question_text as string) ||
+      (qAny.question as string) ||
+      currentQuestion.content?.rendered ||
+      (qAny.post_title as string) ||
+      (qAny.name as string) ||
+      '';
+  }
+  if (!questionText || (typeof questionText === 'string' && questionText.trim() === '')) {
+    questionText = `Question ${currentQuestionIndex + 1}`;
+  }
+
+  const needsHtmlStemRenderer = questionStemNeedsHtmlRenderer(questionText);
+
+  let cleanedQuestionText = questionText;
+  if (questionText && typeof questionText === 'string' && !needsHtmlStemRenderer) {
+    cleanedQuestionText = questionText
+      .replace(/<p[^>]*>/gi, '')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<div[^>]*>/gi, '')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
   const mediaUrl = currentQuestion.media || currentQuestion.acf?.media_url;
-  const hasImages = questionHasImages(questionText);
   const explication = currentQuestion.explication || currentQuestion.acf?.explication || '';
   const questionType = currentQuestion.type_question || currentQuestion.acf?.type_question || 'QCM';
   const isTextInput = questionType === 'TexteLibre' || questionType === 'text_input' || questionType === 'open_ended';
@@ -116,13 +132,13 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
           {/* Question Text */}
           <div className="mb-8">
             <div className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
-              {hasImages ? (
+              {needsHtmlStemRenderer ? (
                 <HtmlWithMathRenderer
                   html={questionText || ''}
                   className="prose prose-lg max-w-none"
                 />
               ) : (
-                <MathRenderer text={questionText || ''} />
+                <MathRenderer text={cleanedQuestionText || ''} />
               )}
             </div>
           </div>
@@ -150,11 +166,11 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
                       </div>
                     )}
                     <div className="text-green-800 font-medium text-lg">
-                      {renderRichText(correctAnswer.texte || '')}
+                      <HtmlWithMathRenderer html={correctAnswer.texte || ''} />
                     </div>
                     {correctAnswer.explication && (
                       <div className="text-sm text-green-700 mt-3 italic">
-                        {renderRichText(correctAnswer.explication)}
+                        <HtmlWithMathRenderer html={correctAnswer.explication} />
                       </div>
                     )}
                   </div>
@@ -235,11 +251,11 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
                             </div>
                           )}
                           <div className={`font-medium ${isCorrect ? 'text-green-900' : 'text-gray-900'}`}>
-                            {renderRichText(answer.texte || '')}
+                            <HtmlWithMathRenderer html={answer.texte || ''} />
                           </div>
                           {answer.explication && (
                             <div className="text-sm text-gray-600 mt-2 italic">
-                              {renderRichText(answer.explication)}
+                              <HtmlWithMathRenderer html={answer.explication} />
                             </div>
                           )}
                         </div>
@@ -264,7 +280,7 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
                 Detailed Explanation:
               </p>
               <div className="text-sm text-gray-700 leading-relaxed">
-                {renderRichText(explication)}
+                <HtmlWithMathRenderer html={explication} />
               </div>
             </div>
           )}

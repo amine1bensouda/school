@@ -11,6 +11,18 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     min-height: 100vh;
   }
+
+  /* Preserve editor / math / rich HTML behaviour */
+  .html-with-math-renderer p,
+  .quiz-rich-html p,
+  .ql-editor p,
+  .admin-app .ql-editor p {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: normal;
+    font-weight: inherit;
+  }
   
   html {
     scroll-behavior: smooth;
@@ -400,26 +412,29 @@
   display: none;
 }
 
-/* Explications quiz : respecter les retours à la ligne Quill sans espacement excessif */
+/* HTML issu de Quill (questions / réponses quiz) : gras + souligné visibles ensemble */
+.quiz-rich-html strong,
+.quiz-rich-html b {
+  font-weight: 700;
+}
+.quiz-rich-html u {
+  text-decoration: underline;
+}
+.quiz-rich-html u strong,
+.quiz-rich-html strong u,
+.quiz-rich-html u b,
+.quiz-rich-html b u {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Secours si du <p> subsiste dans un fragment (voir HtmlWithMathRenderer) */
 .html-with-math-renderer p {
-  margin: 0 0 0.5em;
-}
-
-.html-with-math-renderer p:last-child {
-  margin-bottom: 0;
-}
-
-.html-with-math-renderer .math-ph-inline {
   display: inline;
-  vertical-align: baseline;
+  margin: 0;
+  padding: 0;
 }
-
-.html-with-math-renderer .math-ph-block {
-  display: block;
-  margin: 0.25em 0;
-  text-align: center;
-}
-
-.html-with-math-renderer .katex-display {
-  margin: 0.25em 0;
+.html-with-math-renderer p + p::before {
+  content: '\A';
+  white-space: pre;
 }

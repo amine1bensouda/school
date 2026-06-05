@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import type { Question as QuestionType } from '@/lib/types';
+import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
 import MathRenderer from './MathRenderer';
 import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
@@ -68,14 +69,10 @@ export default function Question({
     questionText = `Question ${questionNumber}`;
   }
 
-  // Vérifier si le texte contient des images base64 ou des balises <img> avant de nettoyer
-  const hasImages = questionText && typeof questionText === 'string' && 
-    (questionText.includes('<img') || questionText.includes('data:image/'));
-  
-  // Nettoyer et améliorer le formatage du texte seulement si pas d'images
-  // Si le texte contient des images, on le garde tel quel pour SafeHtmlRenderer
+  const needsHtmlStemRenderer = questionStemNeedsHtmlRenderer(questionText);
+
   let cleanedQuestionText = questionText;
-  if (questionText && typeof questionText === 'string' && !hasImages) {
+  if (questionText && typeof questionText === 'string' && !needsHtmlStemRenderer) {
     // Remplacer les balises de paragraphe et de saut de ligne par des espaces
     cleanedQuestionText = questionText
       .replace(/<p[^>]*>/gi, '')
@@ -168,9 +165,9 @@ export default function Question({
 
         {/* Texte de la question */}
         <div className="mb-8">
-          {hasImages ? (
+          {needsHtmlStemRenderer ? (
             <div className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
-              <HtmlWithMathRenderer 
+              <HtmlWithMathRenderer
                 html={questionText || ''}
                 className="prose prose-lg max-w-none"
               />
