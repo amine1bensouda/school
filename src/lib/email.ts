@@ -64,18 +64,18 @@ export function formatEmailSendError(error: unknown): string {
       msg + code
     )
   ) {
-    return 'Le serveur e-mail ne répond pas (timeout). Sur le VPS, ajoutez RESEND_API_KEY dans .env (recommandé) ou vérifiez SMTP_HOST / ports 587-465.';
+    return 'The email server is not responding (timeout). On the VPS, add RESEND_API_KEY to .env (recommended) or check SMTP_HOST / ports 587-465.';
   }
 
   if (/Invalid login|EAUTH|authentication/i.test(msg)) {
-    return 'Identifiants SMTP incorrects. Vérifiez SMTP_USER et SMTP_PASS (mot de passe d\'application pour Gmail).';
+    return 'Invalid SMTP credentials. Check SMTP_USER and SMTP_PASS (use a Gmail app password if applicable).';
   }
 
   if (/domain is not verified|not authorized|RESEND/i.test(msg)) {
     return msg;
   }
 
-  return msg || 'Impossible d\'envoyer l\'e-mail de confirmation.';
+  return msg || 'Unable to send the confirmation email.';
 }
 
 async function resolveSmtpHostIpv4(hostname: string): Promise<string> {
@@ -192,22 +192,22 @@ export async function sendVerificationCodeEmail(
   name: string,
   code: string
 ): Promise<void> {
-  const subject = `${SITE_NAME} — Code de confirmation (${code})`;
+  const subject = `${SITE_NAME} — Verification code (${code})`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
-      <h2 style="color: #111;">Confirmez votre inscription</h2>
-      <p>Bonjour ${escapeHtml(name)},</p>
-      <p>Voici votre code de confirmation pour créer un compte sur <strong>${escapeHtml(SITE_NAME)}</strong> :</p>
+      <h2 style="color: #111;">Confirm your registration</h2>
+      <p>Hello ${escapeHtml(name)},</p>
+      <p>Here is your verification code to create an account on <strong>${escapeHtml(SITE_NAME)}</strong>:</p>
       <p style="font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; padding: 16px; background: #f3f4f6; border-radius: 12px; color: #111;">
         ${code}
       </p>
-      <p style="color: #666; font-size: 14px;">Ce code expire dans <strong>15 minutes</strong>. Ne le partagez avec personne.</p>
-      <p style="color: #666; font-size: 14px;">Si vous n'avez pas demandé cette inscription, ignorez cet e-mail.</p>
+      <p style="color: #666; font-size: 14px;">This code expires in <strong>15 minutes</strong>. Do not share it with anyone.</p>
+      <p style="color: #666; font-size: 14px;">If you did not request this registration, please ignore this email.</p>
     </div>
   `;
 
-  const text = `Bonjour ${name},\n\nVotre code de confirmation : ${code}\n\nIl expire dans 15 minutes.\n\n— ${SITE_NAME}`;
+  const text = `Hello ${name},\n\nYour verification code: ${code}\n\nIt expires in 15 minutes.\n\n— ${SITE_NAME}`;
 
   if (!isEmailConfigured()) {
     if (process.env.NODE_ENV === 'development') {

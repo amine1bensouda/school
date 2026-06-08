@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: unknown) {
     let message = formatEmailSendError(error);
-    if (message.includes('wait') || message.includes('Attendez')) {
+    if (message.includes('wait')) {
       return NextResponse.json({ error: message }, { status: 429 });
     }
     console.error('POST /api/auth/register/send-code:', error);

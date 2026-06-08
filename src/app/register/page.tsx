@@ -48,7 +48,7 @@ export default function RegisterPage() {
       setDevHint(result.devHint || null);
       setStep('verify');
       setInfo(
-        `Un code à 6 chiffres a été envoyé à ${result.email}. Saisissez-le ci-dessous pour activer votre compte.`
+        `A 6-digit code has been sent to ${result.email}. Enter it below to activate your account.`
       );
       setVerificationCode('');
     } catch (err: unknown) {
@@ -84,7 +84,7 @@ export default function RegisterPage() {
     try {
       const result = await sendRegistrationCode(email, password, name);
       setDevHint(result.devHint || null);
-      setInfo('Un nouveau code a été envoyé.');
+      setInfo('A new code has been sent.');
       setResendCooldown(60);
       const interval = setInterval(() => {
         setResendCooldown((s) => {
@@ -114,8 +114,8 @@ export default function RegisterPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
           <p className="text-gray-600">
             {step === 'form'
-              ? `Join ${SITE_NAME} — confirmation par e-mail requise`
-              : 'Vérification de votre adresse e-mail'}
+              ? `Join ${SITE_NAME} — email confirmation required`
+              : 'Verify your email address'}
           </p>
         </div>
 
@@ -221,7 +221,7 @@ export default function RegisterPage() {
 
               <div>
                 <label htmlFor="code" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Code de confirmation (6 chiffres)
+                  Verification code (6 digits)
                 </label>
                 <input
                   id="code"
@@ -238,7 +238,7 @@ export default function RegisterPage() {
                   placeholder="000000"
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  Le code expire dans 15 minutes.
+                  The code expires in 15 minutes.
                 </p>
               </div>
 
