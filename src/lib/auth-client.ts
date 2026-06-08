@@ -127,6 +127,9 @@ function parseAuthError(message: string | undefined, fallback: string): string {
   if (message.includes('already registered')) {
     return 'This email is already registered. Sign in or use another email.';
   }
+  if (/timeout|serveur e-mail|RESEND|SMTP/i.test(message)) {
+    return message;
+  }
   return message;
 }
 

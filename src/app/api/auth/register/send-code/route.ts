@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { createOrRefreshVerification, normalizeEmail } from '@/lib/registration-verification';
-import { isEmailConfigured } from '@/lib/email';
+import { formatEmailSendError, isEmailConfigured } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -75,13 +75,11 @@ export async function POST(request: NextRequest) {
           : undefined,
     });
   } catch (error: unknown) {
-    let message = error instanceof Error ? error.message : 'Failed to send code';
-    if (message.includes('ENETUNREACH') || message.includes('ESOCKET')) {
-      message =
-        'Impossible de joindre le serveur e-mail. Réessayez dans quelques minutes ou contactez le support.';
+    let message = formatEmailSendError(error);
+    if (message.includes('wait') || message.includes('Attendez')) {
+      return NextResponse.json({ error: message }, { status: 429 });
     }
-    const status = message.includes('wait') || message.includes('Attendez') ? 429 : 500;
     console.error('POST /api/auth/register/send-code:', error);
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
