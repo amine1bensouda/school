@@ -4,6 +4,10 @@ export const SITE_NAME = 'The School of Mathematics';
 export const SITE_DESCRIPTION = 'Test your knowledge with our interactive mathematics quizzes';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theschoolofmathematics.com';
 
+/** Google Analytics 4 — surcharge possible via NEXT_PUBLIC_GA_MEASUREMENT_ID */
+export const GA_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-7KTJELDY2Z';
+
 // Difficulty levels (Fundamental, Intermediate, Advanced + legacy for backward compatibility)
 export const DIFFICULTY_LEVELS: Record<string, { label: string; color: string; icon: string }> = {
   Fundamental: { label: 'Fundamental', color: 'green', icon: '🟢' },
