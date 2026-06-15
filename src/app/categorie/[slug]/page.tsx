@@ -1,9 +1,10 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { getAllCategories, getCoursesByCategorySlug } from '@/lib/quiz-service';
 import type { Category } from '@/lib/types';
 import CourseCard from '@/components/Quiz/CourseCard';
 import Navigation from '@/components/Layout/Navigation';
+import { SITE_URL } from '@/lib/constants';
 
 export const revalidate = 3600;
 
@@ -44,12 +45,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!category) {
     return {
       title: 'Category Not Found',
+      robots: { index: false, follow: false },
     };
   }
+
+  const canonical = `/categorie/${encodeURIComponent(category.slug)}`;
 
   return {
     title: `${category.name} Courses`,
     description: `Discover all our courses on the topic of ${category.name}`,
+    alternates: { canonical },
+    openGraph: {
+      title: `${category.name} Courses`,
+      description: `Discover all our courses on the topic of ${category.name}`,
+      url: `${SITE_URL}${canonical}`,
+    },
   };
 }
 
@@ -59,6 +69,11 @@ export default async function CategoryPage({ params }: PageProps) {
 
   if (!category) {
     notFound();
+  }
+
+  const decodedSlug = decodeURIComponent(params.slug);
+  if (decodedSlug !== category.slug && params.slug !== category.slug) {
+    permanentRedirect(`/categorie/${encodeURIComponent(category.slug)}`);
   }
 
   const courses = await getCoursesByCategorySlug(category.slug);

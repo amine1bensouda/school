@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
@@ -37,6 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!quiz) {
     return {
       title: 'Quiz Not Found',
+      robots: { index: false, follow: false },
     };
   }
 
@@ -85,6 +86,11 @@ export default async function QuizPage({ params }: PageProps) {
     notFound();
   }
 
+  const canonicalSlug = quiz.slug || decodedSlug;
+  if (decodedSlug !== canonicalSlug && params.slug !== canonicalSlug) {
+    permanentRedirect(`/quiz/${encodeURIComponent(canonicalSlug)}`);
+  }
+
   const title = stripHtml(quiz.title.rendered);
   const description = quiz.excerpt?.rendered || '';
   const difficulty = quiz.acf?.niveau_difficulte;
@@ -109,7 +115,7 @@ export default async function QuizPage({ params }: PageProps) {
   const breadcrumbItems = [
     { name: 'Home', url: SITE_URL },
     { name: 'Quizzes', url: `${SITE_URL}/quiz` },
-    { name: title, url: `${SITE_URL}/quiz/${params.slug}` },
+    { name: title, url: `${SITE_URL}/quiz/${encodeURIComponent(canonicalSlug)}` },
   ];
 
   return (

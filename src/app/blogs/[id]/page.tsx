@@ -13,7 +13,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id: idOrSlug } = await Promise.resolve(params);
   const post = await getBlogPostFromDB(idOrSlug);
-  if (!post) return { title: 'Blog' };
+  if (!post) return { title: 'Blog', robots: { index: false, follow: false } };
 
   const canonical = `/blogs/${encodeURIComponent(post.slug)}`;
 

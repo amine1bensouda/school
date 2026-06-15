@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
@@ -23,7 +23,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const course = await getCourseBySlug(slug);
 
   if (!course) {
-    return { title: 'Course' };
+    return {
+      title: 'Course Not Found',
+      robots: { index: false, follow: false },
+    };
   }
 
   const title = stripHtml(course.title);
@@ -55,7 +58,11 @@ export default async function CoursePage({ params }: PageProps) {
   const course = await getCourseBySlug(slug);
 
   if (!course) {
-    redirect('/quiz');
+    notFound();
+  }
+
+  if (slug !== course.slug) {
+    permanentRedirect(`/quiz/course/${encodeURIComponent(course.slug)}`);
   }
 
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module._count.quizzes, 0);

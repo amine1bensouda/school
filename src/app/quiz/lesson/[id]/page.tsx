@@ -1,10 +1,12 @@
-import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import Navigation from '@/components/Layout/Navigation';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import { getLessonByIdOrSlug } from '@/lib/lesson-service';
+import { SITE_URL } from '@/lib/constants';
 
 interface Lesson {
   id: string;
@@ -35,16 +37,40 @@ interface PageProps {
   params: Promise<{ id: string }> | { id: string };
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id: slugOrId } = await Promise.resolve(params);
+  const lesson = await getLessonByIdOrSlug(slugOrId);
+
+  if (!lesson) {
+    return {
+      title: 'Lesson Not Found',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const canonical = `/quiz/lesson/${encodeURIComponent(lesson.slug)}`;
+
+  return {
+    title: `${lesson.title} | The School of Mathematics`,
+    alternates: { canonical },
+    openGraph: {
+      title: lesson.title,
+      type: 'article',
+      url: `${SITE_URL}${canonical}`,
+    },
+  };
+}
+
 export default async function LessonPage({ params }: PageProps) {
   const { id: slugOrId } = await Promise.resolve(params);
   const lesson = await getLessonByIdOrSlug(slugOrId);
 
   if (!lesson) {
-    redirect('/quiz');
+    notFound();
   }
 
   if (lesson.slug && lesson.slug !== slugOrId) {
-    redirect(`/quiz/lesson/${lesson.slug}`);
+    permanentRedirect(`/quiz/lesson/${encodeURIComponent(lesson.slug)}`);
   }
 
   const courseSlug = lesson.module?.course.slug;

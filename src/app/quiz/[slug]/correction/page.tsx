@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { getQuizBySlug } from '@/lib/wordpress';
 import QuizCorrection from '@/components/Quiz/QuizCorrection';
-import { SITE_NAME, SITE_URL } from '@/lib/constants';
+import { SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
 
-export const revalidate = 3600; // Revalider toutes les heures
+export const revalidate = 3600;
 
 interface PageProps {
   params: {
@@ -14,34 +14,51 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const quiz = await getQuizBySlug(params.slug);
+  const decodedSlug = decodeURIComponent(params.slug);
+  let quiz = await getQuizBySlug(decodedSlug);
+  if (!quiz && decodedSlug !== params.slug) {
+    quiz = await getQuizBySlug(params.slug);
+  }
 
   if (!quiz) {
     return {
       title: 'Quiz Not Found',
+      robots: { index: false, follow: false },
     };
   }
 
   const title = stripHtml(quiz.title.rendered);
-  const description = `Correction du quiz: ${title}`;
+  const canonicalSlug = quiz.slug || decodedSlug;
+  const quizCanonical = `/quiz/${encodeURIComponent(canonicalSlug)}`;
 
   return {
     title: `Correction - ${title}`,
-    description,
+    description: `Answer key and explanations for: ${title}`,
+    alternates: { canonical: quizCanonical },
+    robots: { index: false, follow: false },
     openGraph: {
       title: `Correction - ${title}`,
-      description,
+      description: `Answer key and explanations for: ${title}`,
       type: 'article',
-      url: `${SITE_URL}/quiz/${params.slug}/correction`,
+      url: `${SITE_URL}${quizCanonical}`,
     },
   };
 }
 
 export default async function QuizCorrectionPage({ params }: PageProps) {
-  const quiz = await getQuizBySlug(params.slug);
+  const decodedSlug = decodeURIComponent(params.slug);
+  let quiz = await getQuizBySlug(decodedSlug);
+  if (!quiz && decodedSlug !== params.slug) {
+    quiz = await getQuizBySlug(params.slug);
+  }
 
   if (!quiz) {
     notFound();
+  }
+
+  const canonicalSlug = quiz.slug || decodedSlug;
+  if (decodedSlug !== canonicalSlug && params.slug !== canonicalSlug) {
+    permanentRedirect(`/quiz/${encodeURIComponent(canonicalSlug)}/correction`);
   }
 
   return (

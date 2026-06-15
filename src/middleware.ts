@@ -94,6 +94,7 @@ function isAdminApiRequest(pathname: string): boolean {
  * force la désindexation même si l'URL est crawlée via un lien externe.
  */
 const NO_INDEX_PATH_PATTERNS = [
+  /^\/quiz\/[^/]+\/correction(\/|$)/,
   /^\/login(\/|$)/,
   /^\/register(\/|$)/,
   /^\/dashboard(\/|$)/,

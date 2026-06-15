@@ -16,7 +16,10 @@ export async function generateMetadata({
   const page = await getPublishedPageBySlugData(slug);
 
   if (!page) {
-    return { title: 'Page not found' };
+    return {
+      title: 'Page not found',
+      robots: { index: false, follow: false },
+    };
   }
 
   const canonical = `/pages/${page.slug}`;
