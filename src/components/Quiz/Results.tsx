@@ -14,6 +14,7 @@ interface ResultsProps {
   quizSlug: string;
   minimumScore?: number;
   quizId?: number;
+  sessionStorageKey?: string;
   category?: string;
   questions?: Question[];
 }
@@ -24,6 +25,7 @@ export default function Results({
   quizSlug,
   minimumScore = 70,
   quizId,
+  sessionStorageKey,
   category,
   questions = [],
 }: ResultsProps) {
@@ -225,10 +227,9 @@ export default function Results({
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href={`/quiz/${quizSlug}?reset=true`}
-              onClick={(e) => {
-                // Nettoyer la progression sauvegardée avant de refaire le quiz
-                if (quizId) {
-                  clearQuizSession(quizId);
+              onClick={() => {
+                if (sessionStorageKey || quizId != null) {
+                  clearQuizSession(sessionStorageKey ?? String(quizId), quizId);
                 }
               }}
               className="flex-1 btn-primary text-center py-4 text-lg"

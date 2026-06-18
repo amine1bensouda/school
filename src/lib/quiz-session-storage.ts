@@ -13,15 +13,33 @@ export interface QuizSessionData {
   questionTimers?: Record<number, { endsAt: number }>;
 }
 
+export function getQuizSessionStorageKey(quiz: {
+  id: number;
+  prismaId?: string;
+  slug: string;
+}): string {
+  return quiz.prismaId ?? quiz.slug ?? String(quiz.id);
+}
+
+function getStorageKeyCandidates(
+  storageKey: string | number,
+  legacyNumericId?: number
+): string[] {
+  const keys = [String(storageKey)];
+  if (legacyNumericId != null && String(legacyNumericId) !== String(storageKey)) {
+    keys.push(String(legacyNumericId));
+  }
+  return keys;
+}
+
 export function getQuizSessionKey(quizId: string | number): string {
   return `quiz-session-${quizId}`;
 }
 
-export function loadQuizSession(quizId: string | number): QuizSessionData | null {
-  if (typeof window === 'undefined') return null;
+function readQuizSession(key: string): QuizSessionData | null {
   try {
-    const raw = localStorage.getItem(getQuizSessionKey(quizId));
-    if (!raw) return migrateLegacySession(quizId);
+    const raw = localStorage.getItem(getQuizSessionKey(key));
+    if (!raw) return null;
     const data = JSON.parse(raw) as QuizSessionData;
     if (data.version !== 1 || !data.startedAt) return null;
     return data;
@@ -30,18 +48,44 @@ export function loadQuizSession(quizId: string | number): QuizSessionData | null
   }
 }
 
-export function saveQuizSession(quizId: string | number, data: QuizSessionData): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(getQuizSessionKey(quizId), JSON.stringify(data));
+export function loadQuizSession(
+  storageKey: string | number,
+  legacyNumericId?: number
+): QuizSessionData | null {
+  if (typeof window === 'undefined') return null;
+
+  for (const key of getStorageKeyCandidates(storageKey, legacyNumericId)) {
+    const session = readQuizSession(key) ?? migrateLegacySession(key);
+    if (!session) continue;
+
+    if (key !== String(storageKey)) {
+      saveQuizSession(storageKey, session);
+      localStorage.removeItem(getQuizSessionKey(key));
+    }
+    return session;
+  }
+
+  return null;
 }
 
-export function clearQuizSession(quizId: string | number): void {
+export function saveQuizSession(storageKey: string | number, data: QuizSessionData): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(getQuizSessionKey(quizId));
-  localStorage.removeItem(`quiz-progress-${quizId}`);
-  localStorage.removeItem(`quiz-timer-${quizId}`);
-  localStorage.removeItem(`quiz-start-time-${quizId}`);
-  localStorage.removeItem(`quiz-flags-${quizId}`);
+  localStorage.setItem(getQuizSessionKey(storageKey), JSON.stringify(data));
+}
+
+export function clearQuizSession(
+  storageKey: string | number,
+  legacyNumericId?: number
+): void {
+  if (typeof window === 'undefined') return;
+
+  for (const key of getStorageKeyCandidates(storageKey, legacyNumericId)) {
+    localStorage.removeItem(getQuizSessionKey(key));
+    localStorage.removeItem(`quiz-progress-${key}`);
+    localStorage.removeItem(`quiz-timer-${key}`);
+    localStorage.removeItem(`quiz-start-time-${key}`);
+    localStorage.removeItem(`quiz-flags-${key}`);
+  }
 }
 
 /** Temps restant global du quiz (secondes), ou null si sans limite */

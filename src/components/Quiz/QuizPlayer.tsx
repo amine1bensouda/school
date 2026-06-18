@@ -11,6 +11,7 @@ import { trackQuizStart, trackAnswerSelect, trackQuizComplete } from '@/lib/anal
 import { saveQuizAttempt } from '@/lib/auth-client';
 import {
   type QuizSessionData,
+  getQuizSessionStorageKey,
   loadQuizSession,
   saveQuizSession,
   clearQuizSession,
@@ -40,9 +41,11 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
   const [isSessionReady, setIsSessionReady] = useState(false);
+  const sessionStorageKey = getQuizSessionStorageKey(quiz);
 
     // Initialiser les questions et charger la progression sauvegardée
   useEffect(() => {
+    setIsSessionReady(false);
     const quizQuestions = quiz.acf?.questions || [];
 
     // En production on évite les logs lourds qui ralentissent le rendu
@@ -90,7 +93,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       const urlParams = new URLSearchParams(window.location.search);
       shouldReset = urlParams.get('reset') === 'true';
       if (shouldReset) {
-        clearQuizSession(quiz.id);
+        clearQuizSession(sessionStorageKey, quiz.id);
         setCurrentQuestionIndex(0);
         setSelectedAnswers({});
         setQuizCompleted(false);
@@ -108,7 +111,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     let session: QuizSessionData;
 
     if (!shouldReset && typeof window !== 'undefined') {
-      const saved = loadQuizSession(quiz.id);
+      const saved = loadQuizSession(sessionStorageKey, quiz.id);
       if (saved) {
         session = saved;
         orderedQuestions = orderQuestionsBySession(quizQuestions, saved.questionOrder);
@@ -134,7 +137,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
           questionOrder: buildQuestionOrder(orderedQuestions),
         };
         setSessionStartedAt(session.startedAt);
-        saveQuizSession(quiz.id, session);
+        saveQuizSession(sessionStorageKey, session);
       }
     } else {
       session = {
@@ -148,7 +151,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       };
       setSessionStartedAt(session.startedAt);
       if (typeof window !== 'undefined') {
-        saveQuizSession(quiz.id, session);
+        saveQuizSession(sessionStorageKey, session);
       }
     }
 
@@ -158,7 +161,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     setIsSessionReady(true);
 
     trackQuizStart(quiz.id, quiz.title.rendered.replace(/<[^>]*>/g, ''));
-  }, [quiz]);
+  }, [quiz, sessionStorageKey]);
 
   // Calculer la question actuelle et les valeurs dérivées
   const currentQuestion = questions[currentQuestionIndex];
@@ -322,7 +325,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
 
     setResults(quizResults);
     setQuizCompleted(true);
-    clearQuizSession(quiz.id);
+    clearQuizSession(sessionStorageKey, quiz.id);
     sessionRef.current = null;
 
     // Save quiz attempt for logged-in users
@@ -412,7 +415,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isSessionReady, quizCompleted, calculateResults, quiz.id]);
+  }, [isSessionReady, quizCompleted, calculateResults, sessionStorageKey]);
 
   // Timer par question (persiste après refresh)
   useEffect(() => {
@@ -431,7 +434,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
           ...session.questionTimers,
           [idx]: { endsAt },
         };
-        saveQuizSession(quiz.id, session);
+        saveQuizSession(sessionStorageKey, session);
         remaining = tempsLimite;
       }
       setTimeRemaining(remaining);
@@ -448,7 +451,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     }
 
     setTimeRemaining(null);
-  }, [isSessionReady, currentQuestion, currentQuestionIndex, quiz.id]);
+  }, [isSessionReady, currentQuestion, currentQuestionIndex, sessionStorageKey]);
 
   // Sauvegarder la session (réponses, question courante, drapeaux)
   useEffect(() => {
@@ -462,13 +465,13 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       questionOrder: buildQuestionOrder(questions),
     };
     sessionRef.current = updated;
-    saveQuizSession(quiz.id, updated);
+    saveQuizSession(sessionStorageKey, updated);
   }, [
     isSessionReady,
     currentQuestionIndex,
     selectedAnswers,
     flaggedQuestions,
-    quiz.id,
+    sessionStorageKey,
     questions,
   ]);
 
@@ -527,6 +530,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
         quizSlug={quiz.slug} 
         minimumScore={quiz.acf?.score_minimum}
         quizId={quiz.id}
+        sessionStorageKey={sessionStorageKey}
         category={quiz.acf?.categorie}
         questions={questions}
       />
