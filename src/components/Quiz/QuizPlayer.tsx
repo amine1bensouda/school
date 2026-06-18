@@ -12,12 +12,9 @@ import { saveQuizAttempt } from '@/lib/auth-client';
 import {
   type QuizSessionData,
   getQuizSessionStorageKey,
-  loadQuizSession,
-  saveQuizSession,
   clearQuizSession,
   getQuizTimeRemaining,
   getQuestionTimeRemaining,
-  orderQuestionsBySession,
   buildQuestionOrder,
 } from '@/lib/quiz-session-storage';
 
@@ -43,7 +40,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const [isSessionReady, setIsSessionReady] = useState(false);
   const sessionStorageKey = getQuizSessionStorageKey(quiz);
 
-    // Initialiser les questions et charger la progression sauvegardée
+    // Initialiser les questions (réinitialisation à chaque chargement / actualisation)
   useEffect(() => {
     setIsSessionReady(false);
     const quizQuestions = quiz.acf?.questions || [];
@@ -88,72 +85,35 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       dureeEstimee && dureeEstimee > 0 ? dureeEstimee * 60 : 0;
     const isRandomOrder = quiz.acf?.ordre_questions === 'Aleatoire';
 
-    let shouldReset = false;
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      shouldReset = urlParams.get('reset') === 'true';
-      if (shouldReset) {
-        clearQuizSession(sessionStorageKey, quiz.id);
-        setCurrentQuestionIndex(0);
-        setSelectedAnswers({});
-        setQuizCompleted(false);
-        setResults(null);
-        setShowResults(false);
-        setFlaggedQuestions(new Set());
+      if (urlParams.get('reset') === 'true') {
         window.history.replaceState({}, '', window.location.pathname);
       }
+      clearQuizSession(sessionStorageKey, quiz.id);
     }
 
-    let orderedQuestions: Question[] = isRandomOrder
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setQuizCompleted(false);
+    setResults(null);
+    setShowResults(false);
+    setFlaggedQuestions(new Set());
+
+    const orderedQuestions: Question[] = isRandomOrder
       ? shuffleArray(quizQuestions)
       : [...quizQuestions];
 
-    let session: QuizSessionData;
-
-    if (!shouldReset && typeof window !== 'undefined') {
-      const saved = loadQuizSession(sessionStorageKey, quiz.id);
-      if (saved) {
-        session = saved;
-        orderedQuestions = orderQuestionsBySession(quizQuestions, saved.questionOrder);
-        if (orderedQuestions.length === 0) {
-          orderedQuestions = isRandomOrder
-            ? shuffleArray(quizQuestions)
-            : [...quizQuestions];
-        }
-        setCurrentQuestionIndex(
-          Math.min(saved.currentQuestionIndex, Math.max(orderedQuestions.length - 1, 0))
-        );
-        setSelectedAnswers(saved.selectedAnswers || {});
-        setFlaggedQuestions(new Set(saved.flaggedQuestions || []));
-        setSessionStartedAt(saved.startedAt);
-      } else {
-        session = {
-          version: 1,
-          startedAt: Date.now(),
-          durationSeconds: quizDurationSeconds,
-          currentQuestionIndex: 0,
-          selectedAnswers: {},
-          flaggedQuestions: [],
-          questionOrder: buildQuestionOrder(orderedQuestions),
-        };
-        setSessionStartedAt(session.startedAt);
-        saveQuizSession(sessionStorageKey, session);
-      }
-    } else {
-      session = {
-        version: 1,
-        startedAt: Date.now(),
-        durationSeconds: quizDurationSeconds,
-        currentQuestionIndex: 0,
-        selectedAnswers: {},
-        flaggedQuestions: [],
-        questionOrder: buildQuestionOrder(orderedQuestions),
-      };
-      setSessionStartedAt(session.startedAt);
-      if (typeof window !== 'undefined') {
-        saveQuizSession(sessionStorageKey, session);
-      }
-    }
+    const session: QuizSessionData = {
+      version: 1,
+      startedAt: Date.now(),
+      durationSeconds: quizDurationSeconds,
+      currentQuestionIndex: 0,
+      selectedAnswers: {},
+      flaggedQuestions: [],
+      questionOrder: buildQuestionOrder(orderedQuestions),
+    };
+    setSessionStartedAt(session.startedAt);
 
     sessionRef.current = session;
     setQuestions(orderedQuestions);
@@ -417,7 +377,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     return () => clearInterval(interval);
   }, [isSessionReady, quizCompleted, calculateResults, sessionStorageKey]);
 
-  // Timer par question (persiste après refresh)
+  // Timer par question (en mémoire uniquement)
   useEffect(() => {
     if (!isSessionReady || !currentQuestion || !sessionRef.current) return;
 
@@ -434,7 +394,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
           ...session.questionTimers,
           [idx]: { endsAt },
         };
-        saveQuizSession(sessionStorageKey, session);
         remaining = tempsLimite;
       }
       setTimeRemaining(remaining);
@@ -451,29 +410,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     }
 
     setTimeRemaining(null);
-  }, [isSessionReady, currentQuestion, currentQuestionIndex, sessionStorageKey]);
-
-  // Sauvegarder la session (réponses, question courante, drapeaux)
-  useEffect(() => {
-    if (!isSessionReady || !sessionRef.current || questions.length === 0) return;
-
-    const updated: QuizSessionData = {
-      ...sessionRef.current,
-      currentQuestionIndex,
-      selectedAnswers,
-      flaggedQuestions: Array.from(flaggedQuestions),
-      questionOrder: buildQuestionOrder(questions),
-    };
-    sessionRef.current = updated;
-    saveQuizSession(sessionStorageKey, updated);
-  }, [
-    isSessionReady,
-    currentQuestionIndex,
-    selectedAnswers,
-    flaggedQuestions,
-    sessionStorageKey,
-    questions,
-  ]);
+  }, [isSessionReady, currentQuestion, currentQuestionIndex]);
 
   const handleAnswerSelect = (answerKey: string) => {
     setSelectedAnswers({
