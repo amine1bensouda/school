@@ -11,17 +11,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and Site Description */}
           <div>
-            <Link href="/" className="flex items-center gap-3 mb-4 inline-flex">
+            <Link href="/" className="flex items-center gap-3 mb-4 inline-flex" aria-label={`${SITE_NAME} home`}>
               <div className="w-10 h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white border border-gray-200">
                 <Image
                   src="/logo_maths.svg"
-                  alt={`Logo ${SITE_NAME}`}
+                  alt=""
                   width={40}
                   height={40}
                   className="object-contain w-full h-full"
                 />
               </div>
-              <h3 className="text-gray-900 font-bold text-lg">{SITE_NAME}</h3>
+              <span className="text-gray-900 font-bold text-lg">{SITE_NAME}</span>
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed">
               Structured exam preparation with rigorous quizzes and targeted practice to improve your score.
@@ -30,7 +30,7 @@ export default function Footer() {
 
           {/* Navigation */}
           <div>
-            <h4 className="text-gray-900 font-bold mb-4">Navigation</h4>
+            <p className="text-gray-900 font-bold mb-4">Navigation</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link 
@@ -69,7 +69,7 @@ export default function Footer() {
           
           {/* Exams */}
           <div>
-            <h4 className="text-gray-900 font-bold mb-4">Exams</h4>
+            <p className="text-gray-900 font-bold mb-4">Exams</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link 
@@ -84,7 +84,7 @@ export default function Footer() {
 
           {/* Information */}
           <div>
-            <h4 className="text-gray-900 font-bold mb-4">Information</h4>
+            <p className="text-gray-900 font-bold mb-4">Information</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link 

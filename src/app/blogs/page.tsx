@@ -72,7 +72,7 @@ export default async function BlogsPage() {
                         })}
                       </span>
                       <span className="text-sm font-semibold text-indigo-600 group-hover:underline">
-                        Read more →
+                        Read full article →
                       </span>
                     </div>
                   </div>

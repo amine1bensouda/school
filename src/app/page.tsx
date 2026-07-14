@@ -116,7 +116,7 @@ export default async function HomePage() {
                 href="/about-us"
                 className="inline-flex items-center justify-center gap-2 px-6 py-4 sm:px-8 sm:py-4 md:px-10 md:py-5 text-base sm:text-lg font-semibold bg-white text-gray-900 rounded-xl hover:bg-gray-50 border-2 border-gray-300 transition-all duration-300 shadow-md hover:shadow-lg active:scale-[0.98]"
               >
-                Learn More
+                About The School of Mathematics
               </Link>
             </div>
           </div>
@@ -130,6 +130,10 @@ export default async function HomePage() {
         <div className="container mx-auto px-4 sm:px-5 md:px-6 relative z-10 max-w-[100vw]">
           <div className="max-w-6xl mx-auto">
             {courseCardsCount > 0 && (
+              <>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 bg-clip-text text-transparent mb-6 sm:mb-8 text-center">
+                Explore Our Courses
+              </h2>
               <div className={`grid grid-cols-1 ${gridColsClass} gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12`}>
               {publishedCourses.map((course, index) => {
                 const colors = CARD_COLORS[index % CARD_COLORS.length];
@@ -157,8 +161,8 @@ export default async function HomePage() {
                       href={course.slug ? `/quiz/course/${course.slug}` : '/quiz'}
                       className={`inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r ${colors.btn} text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-sm sm:text-base`}
                     >
-                      Practicing
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      Practice {course.title}
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     </Link>
@@ -166,6 +170,7 @@ export default async function HomePage() {
                 );
               })}
               </div>
+              </>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
@@ -347,8 +352,8 @@ export default async function HomePage() {
                 href="/quiz"
                 className="backdrop-blur-xl bg-white/80 hover:bg-white/90 text-gray-900 hover:text-gray-700 font-semibold text-base sm:text-lg flex items-center justify-center sm:justify-start gap-2 group px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl border border-white/40 hover:border-white/60 shadow-lg hover:shadow-xl transition-all duration-300 w-fit"
               >
-                View All
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                View all quizzes
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>

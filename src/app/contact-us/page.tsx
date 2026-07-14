@@ -19,21 +19,21 @@ export default function ContactUsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <div className="card-modern p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Get in Touch</h3>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Get in Touch</h2>
             <div className="space-y-4 text-gray-700">
               <div>
                 <p className="font-semibold mb-1">Email</p>
                 <p className="text-gray-600">
-                  <a href="mailto:contact@schoolofmathematics.com" className="hover:text-gray-900 underline">
-                    contact@schoolofmathematics.com
+                  <a href="mailto:contact@theschoolofmathematics.com" className="hover:text-gray-900 underline">
+                    contact@theschoolofmathematics.com
                   </a>
                 </p>
               </div>
               <div>
                 <p className="font-semibold mb-1">Support</p>
                 <p className="text-gray-600">
-                  <a href="mailto:support@schoolofmathematics.com" className="hover:text-gray-900 underline">
-                    support@schoolofmathematics.com
+                  <a href="mailto:support@theschoolofmathematics.com" className="hover:text-gray-900 underline">
+                    support@theschoolofmathematics.com
                   </a>
                 </p>
               </div>
@@ -45,7 +45,7 @@ export default function ContactUsPage() {
           </div>
 
           <div className="card-modern p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Follow Us</h3>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Follow Us</h2>
             <div className="space-y-4 text-gray-700">
               <p className="text-gray-600">Stay connected with us on social media for updates,
               tips, and educational content.</p>

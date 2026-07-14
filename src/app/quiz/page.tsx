@@ -77,6 +77,7 @@ export default function QuizListPage() {
           </div>
         ) : courses.length > 0 ? (
           <div className="space-y-8">
+            <h2 className="sr-only">Available courses</h2>
             {/* Cartes des cours */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => {
@@ -98,9 +99,9 @@ export default function QuizListPage() {
           <div className="text-center py-20">
             <div className="inline-block backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-12 border border-white/40">
               <div className="text-6xl mb-6">📚</div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
                 No Courses Available
-              </h3>
+              </h2>
               <p className="text-gray-700 text-lg">Check back soon for new courses!</p>
             </div>
           </div>
