@@ -1,10 +1,14 @@
 import { Metadata } from 'next';
 import { SITE_NAME } from '@/lib/constants';
+import ContactForm from '@/components/Contact/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
   description: `Get in touch with ${SITE_NAME} - We'd love to hear from you`,
 };
+
+const CONTACT_EMAIL = 'contact@schoolofmathematics.com';
+const SUPPORT_EMAIL = 'support@schoolofmathematics.com';
 
 export default function ContactUsPage() {
   return (
@@ -24,16 +28,16 @@ export default function ContactUsPage() {
               <div>
                 <p className="font-semibold mb-1">Email</p>
                 <p className="text-gray-600">
-                  <a href="mailto:contact@theschoolofmathematics.com" className="hover:text-gray-900 underline">
-                    contact@theschoolofmathematics.com
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-gray-900 underline">
+                    {CONTACT_EMAIL}
                   </a>
                 </p>
               </div>
               <div>
                 <p className="font-semibold mb-1">Support</p>
                 <p className="text-gray-600">
-                  <a href="mailto:support@theschoolofmathematics.com" className="hover:text-gray-900 underline">
-                    support@theschoolofmathematics.com
+                  <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-gray-900 underline">
+                    {SUPPORT_EMAIL}
                   </a>
                 </p>
               </div>
@@ -47,61 +51,18 @@ export default function ContactUsPage() {
           <div className="card-modern p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Follow Us</h2>
             <div className="space-y-4 text-gray-700">
-              <p className="text-gray-600">Stay connected with us on social media for updates,
-              tips, and educational content.</p>
+              <p className="text-gray-600">
+                Stay connected with us on social media for updates, tips, and educational content.
+              </p>
             </div>
           </div>
         </div>
 
         <div className="card-modern p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
-          <form className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 outline-none transition-all"
-                placeholder="Your name"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 outline-none transition-all"
-                placeholder="your.email@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
-                Message
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                rows={6}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 outline-none transition-all resize-none"
-                placeholder="Your message..."
-              ></textarea>
-            </div>
-            <button
-              type="submit"
-              className="btn-primary w-full"
-            >
-              Send Message
-            </button>
-          </form>
+          <ContactForm />
         </div>
       </div>
     </div>
   );
 }
-

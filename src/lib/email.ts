@@ -91,14 +91,28 @@ async function resolveSmtpHostIpv4(hostname: string): Promise<string> {
 }
 
 async function sendViaResend(
-  to: string,
+  to: string | string[],
   subject: string,
   html: string,
-  text: string
+  text: string,
+  options?: { replyTo?: string }
 ): Promise<void> {
   const resend = getResendConfig();
   if (!resend) {
     throw new Error('RESEND_API_KEY is not configured.');
+  }
+
+  const recipients = Array.isArray(to) ? to : [to];
+
+  const payload: Record<string, unknown> = {
+    from: resend.from,
+    to: recipients,
+    subject,
+    html,
+    text,
+  };
+  if (options?.replyTo) {
+    payload.reply_to = options.replyTo;
   }
 
   const response = await fetch('https://api.resend.com/emails', {
@@ -107,13 +121,7 @@ async function sendViaResend(
       Authorization: `Bearer ${resend.apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      from: resend.from,
-      to: [to],
-      subject,
-      html,
-      text,
-    }),
+    body: JSON.stringify(payload),
   });
 
   const data = (await response.json().catch(() => ({}))) as {
@@ -127,10 +135,11 @@ async function sendViaResend(
 }
 
 async function sendViaSmtp(
-  to: string,
+  to: string | string[],
   subject: string,
   html: string,
-  text: string
+  text: string,
+  options?: { replyTo?: string }
 ): Promise<void> {
   const smtp = getSmtpConfig();
   if (!smtp) {
@@ -141,6 +150,7 @@ async function sendViaSmtp(
 
   const smtpHostname = smtp.host;
   const smtpHostIpv4 = await resolveSmtpHostIpv4(smtpHostname);
+  const recipients = Array.isArray(to) ? to.join(', ') : to;
 
   const portsToTry =
     smtp.port === 465 || smtp.port === 587
@@ -172,7 +182,8 @@ async function sendViaSmtp(
     try {
       await transporter.sendMail({
         from: smtp.from,
-        to,
+        to: recipients,
+        replyTo: options?.replyTo,
         subject,
         text,
         html,
@@ -185,6 +196,31 @@ async function sendViaSmtp(
   }
 
   throw lastError instanceof Error ? lastError : new Error('SMTP send failed');
+}
+
+async function sendEmail(
+  to: string | string[],
+  subject: string,
+  html: string,
+  text: string,
+  options?: { replyTo?: string }
+): Promise<void> {
+  if (!isEmailConfigured()) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[email:dev] Email non configuré — simulation:', { to, subject, text });
+      return;
+    }
+    throw new Error(
+      'Email service is not configured. Set RESEND_API_KEY (recommended) or SMTP_* variables.'
+    );
+  }
+
+  if (getResendConfig()) {
+    await sendViaResend(to, subject, html, text, options);
+    return;
+  }
+
+  await sendViaSmtp(to, subject, html, text, options);
 }
 
 export async function sendVerificationCodeEmail(
@@ -209,23 +245,49 @@ export async function sendVerificationCodeEmail(
 
   const text = `Hello ${name},\n\nYour verification code: ${code}\n\nIt expires in 15 minutes.\n\n— ${SITE_NAME}`;
 
-  if (!isEmailConfigured()) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[email:dev] Aucun provider — code de vérification:', { to, code });
-      return;
-    }
-    throw new Error(
-      'Email service is not configured. Set RESEND_API_KEY (recommended) or SMTP_* variables.'
-    );
-  }
+  await sendEmail(to, subject, html, text);
+}
 
-  // Resend (HTTPS) en priorité — évite les blocages SMTP sur VPS
-  if (getResendConfig()) {
-    await sendViaResend(to, subject, html, text);
-    return;
-  }
+/** Destinataires des messages du formulaire de contact */
+export function getContactInboxEmails(): string[] {
+  const fromEnv = process.env.CONTACT_INBOX_EMAIL?.trim();
+  const defaults = [
+    'contact@schoolofmathematics.com',
+    'mdz.dev57@gmail.com',
+  ];
 
-  await sendViaSmtp(to, subject, html, text);
+  const list = fromEnv
+    ? fromEnv.split(',').map((e) => e.trim()).filter(Boolean)
+    : defaults;
+
+  return [...new Set(list.map((e) => e.toLowerCase()))];
+}
+
+export async function sendContactFormEmail(payload: {
+  name: string;
+  email: string;
+  message: string;
+}): Promise<void> {
+  const inboxes = getContactInboxEmails();
+  const name = payload.name.trim();
+  const email = payload.email.trim();
+  const message = payload.message.trim();
+
+  const subject = `${SITE_NAME} — Contact form: ${name}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
+      <h2 style="color: #111;">New contact message</h2>
+      <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+      <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+      <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(message)}</p>
+    </div>
+  `;
+
+  const text = `New contact message\n\nName: ${name}\nEmail: ${email}\n\n${message}\n\n— ${SITE_NAME}`;
+
+  await sendEmail(inboxes, subject, html, text, { replyTo: email });
 }
 
 function escapeHtml(value: string): string {
