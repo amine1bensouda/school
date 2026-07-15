@@ -272,20 +272,49 @@ export async function sendContactFormEmail(payload: {
   const name = payload.name.trim();
   const email = payload.email.trim();
   const message = payload.message.trim();
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+    'https://www.theschoolofmathematics.com';
 
-  const subject = `${SITE_NAME} — Contact form: ${name}`;
+  // Sujet simple (moins « promo ») pour limiter le filtre anti-spam
+  const subject = `Website contact from ${name}`;
 
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
-      <h2 style="color: #111;">New contact message</h2>
-      <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-      <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-      <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(message)}</p>
+    <div style="font-family: Arial, Helvetica, sans-serif; max-width: 560px; margin: 0 auto; color: #111827;">
+      <p style="font-size: 16px; margin: 0 0 16px;">You received a new message from the contact form on
+        <a href="${escapeHtml(siteUrl)}" style="color: #1d4ed8;">${escapeHtml(siteUrl.replace(/^https?:\/\//, ''))}</a>.
+      </p>
+      <table style="width: 100%; border-collapse: collapse; margin: 0 0 20px;">
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280; width: 90px;">Name</td>
+          <td style="padding: 8px 0; font-weight: 600;">${escapeHtml(name)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280;">Email</td>
+          <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #1d4ed8;">${escapeHtml(email)}</a></td>
+        </tr>
+      </table>
+      <div style="padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;">
+        <p style="margin: 0 0 8px; color: #6b7280; font-size: 13px;">Message</p>
+        <p style="margin: 0; white-space: pre-wrap; line-height: 1.6;">${escapeHtml(message)}</p>
+      </div>
+      <p style="margin: 20px 0 0; font-size: 12px; color: #9ca3af;">
+        Reply directly to this email to answer ${escapeHtml(name)}.
+      </p>
     </div>
   `;
 
-  const text = `New contact message\n\nName: ${name}\nEmail: ${email}\n\n${message}\n\n— ${SITE_NAME}`;
+  const text = [
+    `New message from the contact form on ${siteUrl}`,
+    '',
+    `Name: ${name}`,
+    `Email: ${email}`,
+    '',
+    'Message:',
+    message,
+    '',
+    `Reply to: ${email}`,
+  ].join('\n');
 
   await sendEmail(inboxes, subject, html, text, { replyTo: email });
 }
