@@ -87,24 +87,48 @@ export default function Footer() {
             <p className="text-gray-900 font-bold mb-4">Information</p>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link 
-                  href="/terms-of-service" 
+                <Link
+                  href="/terms-of-service"
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link 
-                  href="/privacy-policy" 
+                <Link
+                  href="/privacy-policy"
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link 
-                  href="/contact-us" 
+                <Link
+                  href="/cookie-policy"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Cookie Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/editorial-policy"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Editorial Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/methodology"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Our Methodology
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact-us"
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Contact Us

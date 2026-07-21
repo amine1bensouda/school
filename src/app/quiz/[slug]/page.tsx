@@ -1,13 +1,18 @@
 import { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getQuizBySlug } from '@/lib/wordpress';
+import { getQuizList } from '@/lib/quiz-service';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
 import CommentsSection from '@/components/Comments/CommentsSection';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
-import { SITE_NAME, SITE_URL } from '@/lib/constants';
+import FaqSchema from '@/components/SEO/FaqSchema';
+import { SITE_URL } from '@/lib/constants';
 import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
+import { sanitizeHtml } from '@/lib/sanitize-html';
+import { buildQuizFaqs, buildQuizIntro } from '@/lib/seo-content';
 
 export const revalidate = 3600; // Revalider toutes les heures
 
@@ -96,6 +101,47 @@ export default async function QuizPage({ params }: PageProps) {
   const difficulty = quiz.acf?.niveau_difficulte;
   const duration = quiz.acf?.duree_estimee;
   const questionCount = quiz.acf?.nombre_questions || 0;
+  const category = quiz.acf?.categorie;
+  const generatedIntro = buildQuizIntro({
+    title,
+    category,
+    difficulty,
+    questionCount,
+    durationMinutes: duration,
+    existingExcerptPlain: stripHtml(description),
+  });
+  const faqs = buildQuizFaqs({
+    title,
+    category,
+    questionCount,
+    minimumScore: quiz.acf?.score_minimum,
+  });
+
+  let relatedQuizzes: Array<{ slug: string; title: string; questionCount: number }> = [];
+  try {
+    const list = await getQuizList({ limit: 24 });
+    relatedQuizzes = list
+      .filter((q) => q.slug !== canonicalSlug)
+      .filter((q) => !category || q.acf?.categorie === category)
+      .slice(0, 4)
+      .map((q) => ({
+        slug: q.slug,
+        title: stripHtml(q.title.rendered),
+        questionCount: q.acf?.nombre_questions || 0,
+      }));
+    if (relatedQuizzes.length < 2) {
+      relatedQuizzes = list
+        .filter((q) => q.slug !== canonicalSlug)
+        .slice(0, 4)
+        .map((q) => ({
+          slug: q.slug,
+          title: stripHtml(q.title.rendered),
+          questionCount: q.acf?.nombre_questions || 0,
+        }));
+    }
+  } catch {
+    relatedQuizzes = [];
+  }
   
   // Ne pas afficher "Level" si vide ou ancienne valeur par défaut "Moyen"
   const showDifficulty = difficulty && String(difficulty).trim() !== '' && difficulty !== 'Moyen';
@@ -122,6 +168,7 @@ export default async function QuizPage({ params }: PageProps) {
     <>
       <QuizSchema quiz={quiz} />
       <BreadcrumbSchema items={breadcrumbItems} />
+      <FaqSchema items={faqs} />
 
       <div className="bg-gradient-to-b from-white via-gray-50 to-white">
         <div className="container mx-auto px-4 py-8 md:py-12">
@@ -157,9 +204,14 @@ export default async function QuizPage({ params }: PageProps) {
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200">
               {description && (
                 <div 
-                  className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed prose prose-lg max-w-none"
-                  dangerouslySetInnerHTML={{ __html: description }}
+                  className="text-lg md:text-xl text-gray-700 mb-6 leading-relaxed prose prose-lg max-w-none"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(description) }}
                 />
+              )}
+              {generatedIntro && (
+                <p className="text-base md:text-lg text-gray-700 mb-8 leading-relaxed">
+                  {generatedIntro}
+                </p>
               )}
 
               {/* Métadonnées modernisées */}
@@ -227,7 +279,41 @@ export default async function QuizPage({ params }: PageProps) {
 
         <QuizPlayer quiz={quiz} />
 
-          <div className="container mx-auto px-4 pb-12">
+          {relatedQuizzes.length > 0 && (
+            <section className="mt-12 mb-10">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Related quizzes</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {relatedQuizzes.map((related) => (
+                  <Link
+                    key={related.slug}
+                    href={`/quiz/${encodeURIComponent(related.slug)}`}
+                    className="rounded-xl border border-gray-200 bg-white p-5 hover:border-gray-400 hover:shadow-md transition-all"
+                  >
+                    <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{related.title}</h3>
+                    <p className="text-sm text-gray-500">
+                      {related.questionCount > 0
+                        ? `${related.questionCount} questions`
+                        : 'Practice quiz'}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="mt-10 mb-12 rounded-2xl border border-gray-200 bg-white p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently asked questions</h2>
+            <div className="space-y-5">
+              {faqs.map((item) => (
+                <div key={item.question}>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.question}</h3>
+                  <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <div className="pb-12">
             <CommentsSection targetType="quiz" targetSlug={quiz.slug} />
           </div>
         </div>
@@ -235,4 +321,3 @@ export default async function QuizPage({ params }: PageProps) {
     </>
   );
 }
-

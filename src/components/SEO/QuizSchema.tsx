@@ -1,6 +1,7 @@
 import type { Quiz } from '@/lib/types';
 import { SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
+import { safeJsonLd } from '@/lib/sanitize-html';
 
 interface QuizSchemaProps {
   quiz: Quiz;
@@ -40,8 +41,7 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   );
 }
-

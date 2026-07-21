@@ -1,4 +1,5 @@
 import { SITE_URL } from '@/lib/constants';
+import { safeJsonLd } from '@/lib/sanitize-html';
 
 interface BreadcrumbItem {
   name: string;
@@ -24,8 +25,7 @@ export default function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   );
 }
-

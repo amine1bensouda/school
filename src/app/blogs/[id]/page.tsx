@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import { getBlogPostFromDB } from '@/lib/blog-data';
 import CommentsSection from '@/components/Comments/CommentsSection';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 export const revalidate = 900;
 
@@ -79,7 +80,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-tight
             prose-p:text-slate-700 prose-p:leading-[1.8]
             prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
         />
 
         <CommentsSection targetType="blog" targetSlug={post.slug} />

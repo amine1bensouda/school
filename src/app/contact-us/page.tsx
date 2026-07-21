@@ -45,6 +45,10 @@ export default function ContactUsPage() {
                 <p className="font-semibold mb-1">Business Hours</p>
                 <p className="text-gray-600">Monday - Friday: 9:00 AM - 5:00 PM EST</p>
               </div>
+              <div>
+                <p className="font-semibold mb-1">Response Time</p>
+                <p className="text-gray-600">We typically reply within 1–2 business days.</p>
+              </div>
             </div>
           </div>
 

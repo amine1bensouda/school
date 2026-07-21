@@ -7,6 +7,7 @@ import { getAllQuiz } from '@/lib/wordpress';
 import { trackSimilarQuizClick } from '@/lib/analytics';
 import { getCurrentUser } from '@/lib/auth';
 import { clearQuizSession } from '@/lib/quiz-session-storage';
+import { buildStudyTip } from '@/lib/seo-content';
 
 interface ResultsProps {
   results: QuizResults;
@@ -183,10 +184,20 @@ export default function Results({
             )}
           </div>
 
+          {/* Study tip based on score */}
+          <div className="rounded-xl p-5 mb-8 bg-indigo-50 border border-indigo-200 text-left">
+            <h3 className="text-sm font-bold uppercase tracking-wide text-indigo-800 mb-2">
+              Study tip
+            </h3>
+            <p className="text-indigo-950 leading-relaxed">
+              {buildStudyTip(percentage, category)}
+            </p>
+          </div>
+
           {/* Quiz similaires */}
           {similarQuizs.length > 0 && (
             <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Similar Quizzes</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Related quizzes</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {similarQuizs.map((quiz) => (
                   <Link

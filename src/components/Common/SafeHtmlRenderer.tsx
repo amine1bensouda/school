@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface SafeHtmlRendererProps {
   html: string;
@@ -24,7 +25,7 @@ export default function SafeHtmlRenderer({ html, className = '', renderMath = fa
     }
 
     // Traiter le HTML pour s'assurer que les images base64 sont correctement préservées
-    let processed = html;
+    let processed = sanitizeHtml(html);
 
     // PROTÉGER les formules mathématiques si renderMath est activé
     const mathPlaceholders: string[] = [];

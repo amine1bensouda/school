@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -10,8 +9,6 @@ import ConditionalLayout from '@/components/Layout/ConditionalLayout';
 import CookieBanner from '@/components/Layout/CookieBanner';
 import SiteSchema from '@/components/SEO/SiteSchema';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -73,7 +70,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans">
         <SiteSchema />
         <GoogleAnalytics />
         <Suspense fallback={null}>
@@ -87,4 +84,3 @@ export default function RootLayout({
     </html>
   );
 }
-

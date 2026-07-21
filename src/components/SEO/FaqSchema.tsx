@@ -1,3 +1,5 @@
+import { safeJsonLd } from '@/lib/sanitize-html';
+
 interface FaqItem {
   question: string;
   answer: string;
@@ -32,8 +34,7 @@ export default function FaqSchema({ items }: FaqSchemaProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   );
 }
-

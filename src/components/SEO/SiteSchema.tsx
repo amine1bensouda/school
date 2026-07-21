@@ -1,4 +1,5 @@
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/constants';
+import { safeJsonLd } from '@/lib/sanitize-html';
 
 export default function SiteSchema() {
   const schema = {
@@ -28,8 +29,7 @@ export default function SiteSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   );
 }
-

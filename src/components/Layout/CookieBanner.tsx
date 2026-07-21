@@ -41,6 +41,10 @@ export default function CookieBanner() {
             <Link href="/privacy-policy" className="underline text-indigo-300 hover:text-indigo-200">
               Privacy Policy
             </Link>
+            {" "}and{" "}
+            <Link href="/cookie-policy" className="underline text-indigo-300 hover:text-indigo-200">
+              Cookie Policy
+            </Link>
             .
           </p>
         </div>

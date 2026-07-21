@@ -12,5 +12,6 @@ Disallow: /admin/
 #
 # Ces routes envoient déjà: X-Robots-Tag: noindex, nofollow, noarchive
 # (voir src/middleware.ts) et <meta name="robots" content="noindex, nofollow">
+# Les anciennes /profile/* sont aussi redirigées en 301 vers / (next.config.js).
 
 Sitemap: https://www.theschoolofmathematics.com/sitemap.xml

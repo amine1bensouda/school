@@ -1,5 +1,6 @@
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
+import { safeJsonLd } from '@/lib/sanitize-html';
 
 interface CourseSchemaProps {
   slug: string;
@@ -42,8 +43,7 @@ export default function CourseSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
     />
   );
 }
-

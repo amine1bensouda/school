@@ -97,6 +97,33 @@ const nextConfig = {
         source: '/categorie',
         destination: '/quiz',
         permanent: true
+      },
+      // Anciennes URLs WordPress / legacy → structure actuelle
+      {
+        source: '/courses/:courseSlug/quizzes/:quizSlug',
+        destination: '/quiz/:quizSlug',
+        permanent: true
+      },
+      {
+        source: '/courses/:courseSlug/quizzes/:quizSlug/:path*',
+        destination: '/quiz/:quizSlug',
+        permanent: true
+      },
+      {
+        source: '/courses/:slug',
+        destination: '/quiz/course/:slug',
+        permanent: true
+      },
+      {
+        source: '/courses',
+        destination: '/quiz',
+        permanent: true
+      },
+      // Profils spam / UGC indexés → hors index via redirection
+      {
+        source: '/profile/:path*',
+        destination: '/',
+        permanent: true
       }
     ];
   },

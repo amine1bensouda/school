@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublishedPageBySlugData } from '@/lib/cache';
 import { SITE_URL } from '@/lib/constants';
+import { sanitizeCss, sanitizeHtml } from '@/lib/sanitize-html';
 
 export const revalidate = 900;
 
@@ -60,14 +61,14 @@ export default async function CustomPublicPage({ params }: PageProps) {
       {page.css && (
         <style
           dangerouslySetInnerHTML={{
-            __html: `\n/* Custom page CSS: ${page.slug} */\n${page.css}\n`,
+            __html: `\n/* Custom page CSS: ${page.slug} */\n${sanitizeCss(page.css)}\n`,
           }}
         />
       )}
       <main
         className="custom-page"
         data-page-slug={page.slug}
-        dangerouslySetInnerHTML={{ __html: page.html || '' }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(page.html || '') }}
       />
     </>
   );
