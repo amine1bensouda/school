@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Quiz } from '@/lib/types';
 import { DIFFICULTY_LEVELS } from '@/lib/constants';
 import { formatDuration, stripHtml, categoryToEnglish } from '@/lib/utils';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -81,7 +82,7 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
         {quiz.excerpt?.rendered && (
           <div 
             className="hidden sm:block text-gray-600 text-sm mb-4 sm:mb-5 line-clamp-2 leading-relaxed prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: quiz.excerpt.rendered }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(quiz.excerpt.rendered) }}
           />
         )}
 
@@ -120,4 +121,3 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
     </Link>
   );
 }
-

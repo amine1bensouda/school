@@ -4,6 +4,7 @@ import Image from 'next/image';
 import type { Question as QuestionType } from '@/lib/types';
 import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
 import MathRenderer from './MathRenderer';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
 interface QuestionProps {
@@ -183,7 +184,7 @@ export default function Question({
         {questionContent && (
           <div
             className="prose prose-sm max-w-none mb-8 text-gray-700 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: questionContent }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(questionContent) }}
           />
         )}
 

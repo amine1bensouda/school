@@ -20,6 +20,7 @@ export interface QuizAttempt {
   correctAnswers: number;
   completedAt: string;
   timeSpent: number;
+  answers?: Array<{ questionId: string; answer: string }>;
 }
 
 // Cache pour l'utilisateur actuel (évite les appels API répétés)
@@ -210,11 +211,8 @@ export async function saveQuizAttempt(attempt: QuizAttempt): Promise<void> {
       credentials: 'include',
       body: JSON.stringify({
         quizId,
-        score: attempt.score,
-        percentage: attempt.percentage,
-        totalQuestions: attempt.totalQuestions,
-        correctAnswers: attempt.correctAnswers,
         timeSpent: attempt.timeSpent,
+        answers: attempt.answers,
       }),
     });
 

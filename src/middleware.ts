@@ -9,12 +9,11 @@ const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 const SIGNATURE_NAMESPACE = 'admin.v1.';
 
 function getSessionSecret(): string {
-  return (
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.ADMIN_PASSWORD_HASH ||
-    process.env.ADMIN_PASSWORD ||
-    'change-me-in-production'
-  );
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error('ADMIN_SESSION_SECRET is required in production');
+  }
+  return secret || 'development-admin-session-secret-change-me';
 }
 
 function base64UrlEncode(buffer: ArrayBuffer): string {

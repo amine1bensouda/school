@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 import { prisma } from './db';
+import { getUserSessionSecret, USER_SESSION_MAX_AGE_SECONDS } from './session-cookie';
+import { verifySignedToken } from './signed-token';
 
 /**
  * Récupère l'utilisateur à partir d'un session token (sans appeler cookies()).
@@ -8,7 +10,12 @@ import { prisma } from './db';
 export async function getUserBySessionToken(sessionToken: string | undefined) {
   if (!sessionToken) return null;
   try {
-    const userId = sessionToken.split('-')[0];
+    const userId = await verifySignedToken(
+      sessionToken,
+      getUserSessionSecret(),
+      'user.v1',
+      USER_SESSION_MAX_AGE_SECONDS * 1000
+    );
     if (!userId) return null;
     const user = await prisma.user.findUnique({
       where: { id: userId },

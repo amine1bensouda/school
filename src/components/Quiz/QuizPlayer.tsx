@@ -323,6 +323,13 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
         correctAnswers: quizResults.correctAnswers,
         completedAt: new Date().toISOString(),
         timeSpent: quizResults.timeSpent,
+        answers: questions.map((question, index) => {
+          const key = selectedAnswers[index] || '';
+          const available = question.reponses || question.acf?.reponses || [];
+          const answerIndex = key.startsWith('answer-') ? Number(key.slice(7)) : -1;
+          const answer = key.startsWith('text:') ? key.slice(5) : (available[answerIndex]?.texte || '');
+          return { questionId: String(question.id || ''), answer };
+        }).filter((item) => item.questionId && item.answer),
       });
     } catch (error) {
       console.error('Error saving quiz attempt:', error);
@@ -696,4 +703,3 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     </div>
   );
 }
-

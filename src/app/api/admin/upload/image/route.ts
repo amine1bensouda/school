@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import path from 'path';
 import { randomUUID } from 'crypto';
+import { extensionForMime, validateUploadBytes } from '@/lib/upload-validation';
 
 
 export const dynamic = 'force-dynamic';
@@ -57,12 +57,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ext = path.extname(file.name) || (file.type === 'image/jpeg' ? '.jpg' : file.type === 'image/png' ? '.png' : file.type === 'image/gif' ? '.gif' : '.webp');
+    const bytes = await file.arrayBuffer();
+    if (!validateUploadBytes(file.type, bytes)) {
+      return NextResponse.json({ error: 'File content does not match its declared type.' }, { status: 400 });
+    }
+    const ext = extensionForMime(file.type)!;
     const now = new Date();
     const year = String(now.getUTCFullYear());
     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
     const key = `images/${year}/${month}/${randomUUID()}${ext.toLowerCase()}`;
-    const bytes = await file.arrayBuffer();
 
     const r2 = getR2Client();
     await r2.send(

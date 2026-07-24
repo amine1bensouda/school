@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { extensionForMime, validateUploadBytes } from '@/lib/upload-validation';
 
 
 export const dynamic = 'force-dynamic';
@@ -32,12 +33,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ext = path.extname(file.name) || (file.type === 'video/mp4' ? '.mp4' : '.webm');
+    const bytes = await file.arrayBuffer();
+    if (!validateUploadBytes(file.type, bytes)) {
+      return NextResponse.json({ error: 'File content does not match its declared video type.' }, { status: 400 });
+    }
+    const ext = extensionForMime(file.type)!;
     const filename = `${randomUUID()}${ext}`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'videos');
     await mkdir(uploadDir, { recursive: true });
     const filepath = path.join(uploadDir, filename);
-    const bytes = await file.arrayBuffer();
     await writeFile(filepath, Buffer.from(bytes));
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
