@@ -16,6 +16,8 @@ export interface BlogPost {
   ctaLink?: string;
   ctaText?: string;
   tags?: string[];
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 }
 
 /** Normalise les tags (MySQL : champ JSON ; PostgreSQL ancien : string[]). */
@@ -47,6 +49,8 @@ function fromPrisma(b: any): BlogPost {
     ctaLink: b.ctaLink || undefined,
     ctaText: b.ctaText || undefined,
     tags: normalizeBlogTags(b.tags),
+    metaTitle: b.metaTitle || null,
+    metaDescription: b.metaDescription || null,
   };
 }
 

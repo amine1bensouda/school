@@ -56,7 +56,19 @@ export async function PUT(
   try {
     const { id } = await Promise.resolve(params);
     const body = await request.json();
-    const { title, slug, excerpt, content, category, tags, ctaLink, ctaText, status } = body;
+    const {
+      title,
+      slug,
+      excerpt,
+      content,
+      category,
+      tags,
+      ctaLink,
+      ctaText,
+      metaTitle,
+      metaDescription,
+      status,
+    } = body;
 
     const existing = await prisma.blogPost.findUnique({ where: { id } });
     if (!existing) {
@@ -66,37 +78,32 @@ export async function PUT(
     const wasPublished = existing.status === 'published';
     const isNowPublished = status === 'published';
 
+    const updateData = {
+      ...(title !== undefined && { title }),
+      ...(slug !== undefined && { slug }),
+      ...(excerpt !== undefined && { excerpt }),
+      ...(content !== undefined && { content }),
+      ...(category !== undefined && { category }),
+      ...(tags !== undefined && { tags }),
+      ...(ctaLink !== undefined && { ctaLink: ctaLink || null }),
+      ...(ctaText !== undefined && { ctaText: ctaText || null }),
+      ...(metaTitle !== undefined && { metaTitle: metaTitle || null }),
+      ...(metaDescription !== undefined && {
+        metaDescription: metaDescription || null,
+      }),
+      ...(status !== undefined && { status }),
+      ...(!wasPublished && isNowPublished && { publishedAt: new Date() }),
+    };
+
     const full = isFullRequest(request);
     const blog = full
       ? await prisma.blogPost.update({
           where: { id },
-          data: {
-            ...(title !== undefined && { title }),
-            ...(slug !== undefined && { slug }),
-            ...(excerpt !== undefined && { excerpt }),
-            ...(content !== undefined && { content }),
-            ...(category !== undefined && { category }),
-            ...(tags !== undefined && { tags }),
-            ...(ctaLink !== undefined && { ctaLink: ctaLink || null }),
-            ...(ctaText !== undefined && { ctaText: ctaText || null }),
-            ...(status !== undefined && { status }),
-            ...(!wasPublished && isNowPublished && { publishedAt: new Date() }),
-          },
+          data: updateData,
         })
       : await prisma.blogPost.update({
           where: { id },
-          data: {
-            ...(title !== undefined && { title }),
-            ...(slug !== undefined && { slug }),
-            ...(excerpt !== undefined && { excerpt }),
-            ...(content !== undefined && { content }),
-            ...(category !== undefined && { category }),
-            ...(tags !== undefined && { tags }),
-            ...(ctaLink !== undefined && { ctaLink: ctaLink || null }),
-            ...(ctaText !== undefined && { ctaText: ctaText || null }),
-            ...(status !== undefined && { status }),
-            ...(!wasPublished && isNowPublished && { publishedAt: new Date() }),
-          },
+          data: updateData,
           select: {
             id: true,
             title: true,

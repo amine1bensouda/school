@@ -26,6 +26,8 @@ export async function PUT(
       moduleId,
       description,
       excerpt,
+      metaTitle,
+      metaDescription,
       duration,
       difficulty,
       passingGrade,
@@ -59,6 +61,8 @@ export async function PUT(
       ...(moduleId !== undefined && { moduleId: moduleId || null }),
       ...(description !== undefined && { description: description || null }),
       ...(excerpt !== undefined && { excerpt: excerpt || null }),
+      ...(metaTitle !== undefined && { metaTitle: metaTitle || null }),
+      ...(metaDescription !== undefined && { metaDescription: metaDescription || null }),
       ...(duration !== undefined && { duration: (duration === null || duration === '' || Number(duration) <= 0) ? 0 : Math.max(0, Number(duration)) }),
       // Toujours mettre à jour difficulty si présente dans le body (y compris '' pour "Not specified")
       ...('difficulty' in body && { difficulty: (body.difficulty === null || body.difficulty === '') ? '' : body.difficulty }),

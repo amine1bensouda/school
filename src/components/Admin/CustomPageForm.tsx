@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import SeoFields from './SeoFields';
 
 interface CustomPageFormData {
   id?: string;
@@ -251,50 +252,18 @@ ${formData.html}
       </div>
 
       {/* SEO */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">SEO</h2>
-          <p className="text-sm text-gray-500">
-            Shown in Google search results and social previews.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Meta title
-            </label>
-            <input
-              type="text"
-              value={formData.metaTitle}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, metaTitle: e.target.value }))
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Defaults to page title if empty (max ~60 chars)"
-              maxLength={120}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Meta description
-            </label>
-            <textarea
-              rows={3}
-              value={formData.metaDescription}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  metaDescription: e.target.value,
-                }))
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Short summary shown in search results (max ~160 chars)"
-              maxLength={320}
-            />
-          </div>
-        </div>
-      </div>
+      <SeoFields
+        metaTitle={formData.metaTitle}
+        metaDescription={formData.metaDescription}
+        defaultTitle={formData.title}
+        defaultDescription=""
+        onMetaTitleChange={(value) =>
+          setFormData((prev) => ({ ...prev, metaTitle: value }))
+        }
+        onMetaDescriptionChange={(value) =>
+          setFormData((prev) => ({ ...prev, metaDescription: value }))
+        }
+      />
 
       {/* Éditeurs HTML / CSS / Preview */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">

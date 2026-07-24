@@ -63,6 +63,8 @@ export default async function EditQuizPage({ params }: { params: { id: string } 
     moduleId: quiz.moduleId || '',
     description: quiz.description || '',
     excerpt: quiz.excerpt || '',
+    metaTitle: quiz.metaTitle || '',
+    metaDescription: quiz.metaDescription || '',
     duration: quiz.duration,
     // Normaliser la difficulté : utiliser '' quand la valeur est null
     difficulty: quiz.difficulty ?? '',

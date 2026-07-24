@@ -10,7 +10,8 @@ import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseSchema from '@/components/SEO/CourseSchema';
 import { getCourseBySlug } from '@/lib/course-service';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
-import { excerptFromHtml, stripHtml } from '@/lib/utils';
+import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
+import { stripHtml } from '@/lib/utils';
 
 export const revalidate = 300;
 
@@ -29,10 +30,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = stripHtml(course.title);
+  const title = resolveSeoTitle(course.metaTitle, stripHtml(course.title));
   const description =
-    excerptFromHtml(course.description || '', 160) ||
-    `${title} course on ${SITE_NAME}.`;
+    resolveSeoDescription(
+      course.metaDescription,
+      course.description,
+      `${stripHtml(course.title)} course on ${SITE_NAME}.`
+    ) || `${stripHtml(course.title)} course on ${SITE_NAME}.`;
   const canonical = `/quiz/course/${encodeURIComponent(course.slug)}`;
 
   return {

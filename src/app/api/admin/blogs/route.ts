@@ -45,7 +45,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, slug, excerpt, content, category, tags, ctaLink, ctaText, status } = body;
+    const {
+      title,
+      slug,
+      excerpt,
+      content,
+      category,
+      tags,
+      ctaLink,
+      ctaText,
+      metaTitle,
+      metaDescription,
+      status,
+    } = body;
 
     if (!title || !slug) {
       return NextResponse.json(
@@ -64,6 +76,14 @@ export async function POST(request: NextRequest) {
         tags: tags || [],
         ctaLink: ctaLink || null,
         ctaText: ctaText || null,
+        metaTitle:
+          metaTitle != null && String(metaTitle).trim() !== ''
+            ? String(metaTitle).trim()
+            : null,
+        metaDescription:
+          metaDescription != null && String(metaDescription).trim() !== ''
+            ? String(metaDescription).trim()
+            : null,
         status: status || 'draft',
         publishedAt: status === 'published' ? new Date() : null,
       },

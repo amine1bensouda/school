@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { getBlogPostFromDB } from '@/lib/blog-data';
 import CommentsSection from '@/components/Comments/CommentsSection';
 import { sanitizeHtml } from '@/lib/sanitize-html';
+import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
+import { SITE_NAME } from '@/lib/constants';
 
 export const revalidate = 900;
 
@@ -17,14 +19,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post) return { title: 'Blog', robots: { index: false, follow: false } };
 
   const canonical = `/blogs/${encodeURIComponent(post.slug)}`;
+  const title = resolveSeoTitle(post.metaTitle, `${post.title} | ${SITE_NAME}`);
+  const description = resolveSeoDescription(post.metaDescription, post.excerpt);
 
   return {
-    title: `${post.title} | The School of Mathematics`,
-    description: post.excerpt,
+    title,
+    description,
     alternates: { canonical },
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
+      title,
+      description,
       type: 'article',
     },
   };

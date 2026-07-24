@@ -20,7 +20,7 @@ export async function PUT(
     const courseId = resolvedParams.id;
 
     const body = await request.json();
-    const { title, slug, description, status } = body;
+    const { title, slug, description, metaTitle, metaDescription, status } = body;
 
     const updateData: any = {};
     if (title !== undefined && title !== null) {
@@ -31,6 +31,12 @@ export async function PUT(
     }
     if (description !== undefined) {
       updateData.description = description || null;
+    }
+    if (metaTitle !== undefined) {
+      updateData.metaTitle = metaTitle || null;
+    }
+    if (metaDescription !== undefined) {
+      updateData.metaDescription = metaDescription || null;
     }
     if (status !== undefined && status !== null) {
       // Valider le statut
@@ -121,7 +127,7 @@ export async function PATCH(
     const courseId = resolvedParams.id;
 
     const body = await request.json();
-    const { status, title, slug, description } = body;
+    const { status, title, slug, description, metaTitle, metaDescription } = body;
 
     // Valider le statut si fourni
     if (status && status !== 'published' && status !== 'draft') {
@@ -143,6 +149,12 @@ export async function PATCH(
     }
     if (description !== undefined) {
       updateData.description = description || null;
+    }
+    if (metaTitle !== undefined) {
+      updateData.metaTitle = metaTitle || null;
+    }
+    if (metaDescription !== undefined) {
+      updateData.metaDescription = metaDescription || null;
     }
 
     // Vérifier qu'il y a au moins un champ à mettre à jour

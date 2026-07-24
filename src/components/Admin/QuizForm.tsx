@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import QuestionEditor from './QuestionEditor';
 import RichTextEditor from './RichTextEditor';
 import ImageUploadField from './ImageUploadField';
+import SeoFields from './SeoFields';
+import { stripHtml } from '@/lib/utils';
 
 interface Course {
   id: string;
@@ -49,6 +51,8 @@ interface QuizFormData {
   moduleId: string;
   description: string;
   excerpt: string;
+  metaTitle: string;
+  metaDescription: string;
   duration?: number;
   difficulty?: string;
   passingGrade?: number;
@@ -77,6 +81,8 @@ export default function QuizForm({ initialData }: QuizFormProps) {
     moduleId: '',
     description: '',
     excerpt: '',
+    metaTitle: '',
+    metaDescription: '',
     duration: undefined,
     difficulty: undefined,
     passingGrade: undefined,
@@ -481,6 +487,19 @@ export default function QuizForm({ initialData }: QuizFormProps) {
             </div>
           </div>
         </div>
+
+        <SeoFields
+          metaTitle={formData.metaTitle}
+          metaDescription={formData.metaDescription}
+          defaultTitle={formData.title}
+          defaultDescription={stripHtml(formData.excerpt || formData.description || '')}
+          onMetaTitleChange={(value) =>
+            setFormData((prev) => ({ ...prev, metaTitle: value }))
+          }
+          onMetaDescriptionChange={(value) =>
+            setFormData((prev) => ({ ...prev, metaDescription: value }))
+          }
+        />
 
         {/* Paramètres */}
         <div>

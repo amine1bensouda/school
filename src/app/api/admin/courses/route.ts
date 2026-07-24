@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, slug, description, status } = body;
+    const { title, slug, description, metaTitle, metaDescription, status } = body;
 
     if (!title || !slug) {
       return NextResponse.json(
@@ -81,6 +81,14 @@ export async function POST(request: NextRequest) {
         title,
         slug,
         description: description || null,
+        metaTitle:
+          metaTitle != null && String(metaTitle).trim() !== ''
+            ? String(metaTitle).trim()
+            : null,
+        metaDescription:
+          metaDescription != null && String(metaDescription).trim() !== ''
+            ? String(metaDescription).trim()
+            : null,
         status: status || 'draft',
       },
       include: {

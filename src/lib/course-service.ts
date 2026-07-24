@@ -48,6 +48,8 @@ export async function getCourseBySlug(slug: string) {
         title: true,
         slug: true,
         description: true,
+        metaTitle: true,
+        metaDescription: true,
         createdAt: true,
         updatedAt: true,
         modules: {

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getPublishedPageBySlugData } from '@/lib/cache';
 import { SITE_URL } from '@/lib/constants';
 import { sanitizeCss, sanitizeHtml } from '@/lib/sanitize-html';
+import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 
 export const revalidate = 900;
 
@@ -24,8 +25,8 @@ export async function generateMetadata({
   }
 
   const canonical = `/pages/${page.slug}`;
-  const title = page.metaTitle || page.title;
-  const description = page.metaDescription || undefined;
+  const title = resolveSeoTitle(page.metaTitle, page.title);
+  const description = resolveSeoDescription(page.metaDescription) || undefined;
 
   return {
     title,

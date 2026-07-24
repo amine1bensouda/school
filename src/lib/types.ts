@@ -13,6 +13,9 @@ export interface Quiz {
   excerpt: {
     rendered: string;
   };
+  /** SEO overrides (Google title / description) */
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   featured_media: number;
   featured_media_url?: string;
   acf?: {
@@ -33,7 +36,7 @@ export interface Quiz {
 // Types pour les Questions
 // Peut être une question WordPress ou une question du Repeater ACF
 export interface Question {
-  id?: number;
+  id?: number | string;
   // Pour questions WordPress
   title?: {
     rendered: string;
@@ -98,10 +101,9 @@ export interface QuizResults {
   timeSpent: number;
   timeExpired?: boolean; // Indique si le quiz a été fermé automatiquement à cause du temps
   answers: {
-    questionId: number;
+    questionId: number | string;
     selectedAnswer: string;
     isCorrect: boolean;
     correctAnswer: string;
   }[];
 }
-

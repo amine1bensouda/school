@@ -13,6 +13,7 @@ import { SITE_URL } from '@/lib/constants';
 import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
 import { sanitizeHtml } from '@/lib/sanitize-html';
 import { buildQuizFaqs, buildQuizIntro } from '@/lib/seo-content';
+import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 
 export const revalidate = 3600; // Revalider toutes les heures
 
@@ -47,29 +48,42 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = stripHtml(quiz.title.rendered);
-  const description = stripHtml(quiz.excerpt?.rendered || quiz.content.rendered);
+  const fallbackDescription = stripHtml(quiz.excerpt?.rendered || quiz.content.rendered);
+  const seoTitle = resolveSeoTitle(quiz.metaTitle, title);
+  const seoDescription = resolveSeoDescription(
+    quiz.metaDescription,
+    fallbackDescription,
+    buildQuizIntro({
+      title,
+      category: quiz.acf?.categorie,
+      difficulty: quiz.acf?.niveau_difficulte,
+      questionCount: quiz.acf?.nombre_questions,
+      durationMinutes: quiz.acf?.duree_estimee,
+      existingExcerptPlain: fallbackDescription,
+    }) || `Free ${title} practice quiz on The School of Mathematics.`
+  );
   const image = quiz.featured_media_url || '';
 
   const canonicalSlug = quiz.slug || params.slug;
   const canonical = `/quiz/${encodeURIComponent(canonicalSlug)}`;
 
   return {
-    title,
-    description,
+    title: seoTitle,
+    description: seoDescription,
     alternates: {
       canonical,
     },
     openGraph: {
-      title,
-      description,
+      title: seoTitle,
+      description: seoDescription,
       images: image ? [{ url: image }] : [],
       type: 'article',
       url: `${SITE_URL}${canonical}`,
     },
     twitter: {
       card: 'summary_large_image',
-      title,
-      description,
+      title: seoTitle,
+      description: seoDescription,
       images: image ? [image] : [],
     },
   };
@@ -110,6 +124,8 @@ export default async function QuizPage({ params }: PageProps) {
     durationMinutes: duration,
     existingExcerptPlain: stripHtml(description),
   });
+  // Texte d'intro visible : excerpt HTML, sinon meta description SEO, sinon intro générée
+  const seoIntroText = (quiz.metaDescription || '').trim();
   const faqs = buildQuizFaqs({
     title,
     category,
@@ -208,7 +224,12 @@ export default async function QuizPage({ params }: PageProps) {
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(description) }}
                 />
               )}
-              {generatedIntro && (
+              {!description && seoIntroText && (
+                <p className="text-base md:text-lg text-gray-700 mb-8 leading-relaxed">
+                  {seoIntroText}
+                </p>
+              )}
+              {!description && !seoIntroText && generatedIntro && (
                 <p className="text-base md:text-lg text-gray-700 mb-8 leading-relaxed">
                   {generatedIntro}
                 </p>

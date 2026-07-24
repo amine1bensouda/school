@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import SeoFields from './SeoFields';
 
 interface BlogFormData {
   id?: string;
@@ -13,6 +14,8 @@ interface BlogFormData {
   tags: string[];
   ctaLink: string;
   ctaText: string;
+  metaTitle: string;
+  metaDescription: string;
   status: 'published' | 'draft';
 }
 
@@ -34,6 +37,8 @@ export default function BlogForm({ initialData }: BlogFormProps) {
     tags: [],
     ctaLink: '',
     ctaText: '',
+    metaTitle: '',
+    metaDescription: '',
     status: 'draft',
     ...initialData,
   });
@@ -125,6 +130,8 @@ export default function BlogForm({ initialData }: BlogFormProps) {
         tags: formData.tags,
         ctaLink: formData.ctaLink || null,
         ctaText: formData.ctaText || null,
+        metaTitle: formData.metaTitle || null,
+        metaDescription: formData.metaDescription || null,
         status: formData.status,
       };
 
@@ -320,6 +327,19 @@ export default function BlogForm({ initialData }: BlogFormProps) {
           </div>
         )}
       </div>
+
+      <SeoFields
+        metaTitle={formData.metaTitle}
+        metaDescription={formData.metaDescription}
+        defaultTitle={formData.title}
+        defaultDescription={formData.excerpt || ''}
+        onMetaTitleChange={(value) =>
+          setFormData((prev) => ({ ...prev, metaTitle: value }))
+        }
+        onMetaDescriptionChange={(value) =>
+          setFormData((prev) => ({ ...prev, metaDescription: value }))
+        }
+      />
 
       {/* CTA (optionnel) */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">

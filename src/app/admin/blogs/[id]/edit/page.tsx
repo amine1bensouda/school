@@ -29,6 +29,8 @@ export default async function EditBlogPage({
     tags: normalizeBlogTags(blog.tags),
     ctaLink: blog.ctaLink || '',
     ctaText: blog.ctaText || '',
+    metaTitle: blog.metaTitle || '',
+    metaDescription: blog.metaDescription || '',
     status: (blog.status as 'published' | 'draft') || 'draft',
   };
 

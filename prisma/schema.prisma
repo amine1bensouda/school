@@ -9,14 +9,16 @@ datasource db {
 }
 
 model Course {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String?
-  status      String   @default("draft")
-  modules     Module[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  description     String?
+  metaTitle       String?
+  metaDescription String?
+  status          String   @default("draft")
+  modules         Module[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("courses")
   @@index([status])
@@ -75,6 +77,8 @@ model Quiz {
   slug             String         @unique
   description      String?
   excerpt          String?
+  metaTitle        String?
+  metaDescription  String?
   duration         Int            @default(10)
   difficulty       String?
   passingGrade     Int            @default(70)
@@ -203,19 +207,21 @@ model Comment {
 }
 
 model BlogPost {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  excerpt     String    @default("")
-  content     String    @default("")
-  category    String    @default("")
-  tags        String[]  @default([])
-  ctaLink     String?
-  ctaText     String?
-  status      String    @default("draft")
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  excerpt         String    @default("")
+  content         String    @default("")
+  category        String    @default("")
+  tags            String[]  @default([])
+  ctaLink         String?
+  ctaText         String?
+  metaTitle       String?
+  metaDescription String?
+  status          String    @default("draft")
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@map("blog_posts")
   @@index([slug])
