@@ -3,7 +3,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import { getBlogPostFromDB } from '@/lib/blog-data';
 import CommentsSection from '@/components/Comments/CommentsSection';
-import { sanitizeHtml } from '@/lib/sanitize-html';
+import { extractEmbeddedCss, sanitizeHtml } from '@/lib/sanitize-html';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 import { SITE_NAME } from '@/lib/constants';
 
@@ -50,6 +50,11 @@ export default async function BlogPostPage({ params }: PageProps) {
     month: 'long',
     day: 'numeric',
   });
+  const embeddedCss = extractEmbeddedCss(post.content);
+  const blogScopeId = `blog-content-${String(post.id).replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const scopedCss = embeddedCss
+    ? `@scope (#${blogScopeId}) {\n${embeddedCss}\n}`
+    : '';
 
   return (
     <div className="min-h-screen bg-white">
@@ -79,7 +84,12 @@ export default async function BlogPostPage({ params }: PageProps) {
           <time dateTime={post.date}>{formattedDate}</time>
         </div>
 
+        {scopedCss && (
+          <style dangerouslySetInnerHTML={{ __html: scopedCss }} />
+        )}
+
         <article
+          id={blogScopeId}
           className="blog-article-content prose prose-slate prose-lg max-w-none mt-8
             prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-tight
             prose-p:text-slate-700 prose-p:leading-[1.8]

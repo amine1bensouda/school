@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createSignedToken, verifySignedToken } from '../src/lib/signed-token';
-import { sanitizeCss, sanitizeHtml } from '../src/lib/sanitize-html';
+import { extractEmbeddedCss, sanitizeCss, sanitizeHtml } from '../src/lib/sanitize-html';
 import { extensionForMime, validateUploadBytes } from '../src/lib/upload-validation';
 import { scoreQuizAttempt } from '../src/lib/quiz-attempt-score';
 
@@ -17,6 +17,14 @@ test('HTML and CSS sanitizers remove executable content', () => {
   assert.equal(clean.includes('onclick'), false);
   assert.equal(clean.includes('javascript:'), false);
   assert.equal(sanitizeCss('@import "evil";a{background:url(javascript:x)}').includes('javascript:'), false);
+});
+
+test('blog CSS is extracted while style tags stay out of sanitized HTML', () => {
+  const source = '<style>.card { color: red } @import "evil";</style><div class="card">ok</div>';
+  assert.equal(extractEmbeddedCss(source).includes('.card { color: red }'), true);
+  assert.equal(extractEmbeddedCss(source).includes('@import'), false);
+  assert.equal(sanitizeHtml(source).includes('<style'), false);
+  assert.equal(sanitizeHtml(source).includes('class="card"'), true);
 });
 
 test('upload validation uses file bytes and fixed extensions', () => {

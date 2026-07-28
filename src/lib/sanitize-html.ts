@@ -26,3 +26,21 @@ export function sanitizeCss(css: string): string {
     .replace(/url\s*\(\s*(['"]?)\s*(?:javascript:|data:)[\s\S]*?\1\s*\)/gi, '')
     .replace(/expression\s*\([^)]*\)/gi, '');
 }
+
+/**
+ * Extracts CSS authored inside <style> tags. The HTML renderer still removes
+ * those tags; callers can render the returned CSS inside a controlled scope.
+ */
+export function extractEmbeddedCss(html: string): string {
+  if (!html) return '';
+
+  const rules: string[] = [];
+  const styleElement = /<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = styleElement.exec(html)) !== null) {
+    rules.push(match[1]);
+  }
+
+  return sanitizeCss(rules.join('\n'));
+}
