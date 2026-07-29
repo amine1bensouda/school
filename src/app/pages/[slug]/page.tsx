@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublishedPageBySlugData } from '@/lib/cache';
 import { SITE_URL } from '@/lib/constants';
-import { sanitizeCss, sanitizeHtml } from '@/lib/sanitize-html';
+import { extractEmbeddedCss, sanitizeCss, sanitizeHtml } from '@/lib/sanitize-html';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 
 export const revalidate = 900;
@@ -57,12 +57,19 @@ export default async function CustomPublicPage({ params }: PageProps) {
     notFound();
   }
 
+  const pageCss = [
+    sanitizeCss(page.css || ''),
+    extractEmbeddedCss(page.html || ''),
+  ]
+    .filter(Boolean)
+    .join('\n');
+
   return (
     <>
-      {page.css && (
+      {pageCss && (
         <style
           dangerouslySetInnerHTML={{
-            __html: `\n/* Custom page CSS: ${page.slug} */\n${sanitizeCss(page.css)}\n`,
+            __html: `\n/* Custom page CSS: ${page.slug} */\n${pageCss}\n`,
           }}
         />
       )}
