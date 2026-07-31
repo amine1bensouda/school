@@ -9,6 +9,8 @@ import ConditionalLayout from '@/components/Layout/ConditionalLayout';
 import CookieBanner from '@/components/Layout/CookieBanner';
 import SiteSchema from '@/components/SEO/SiteSchema';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
+import { getAllPublishedPagesData } from '@/lib/cache';
+import type { PracticePageLink } from '@/lib/practice-pages';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -57,11 +59,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let practicePages: PracticePageLink[] = [];
+  try {
+    const pages = await getAllPublishedPagesData();
+    practicePages = pages
+      .map((page) => ({
+        title: page.title,
+        slug: page.slug,
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title, 'en'));
+  } catch {
+    practicePages = [];
+  }
+
   return (
     <html lang="en">
       <head>
@@ -76,7 +91,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>
-        <ConditionalLayout>{children}</ConditionalLayout>
+        <ConditionalLayout practicePages={practicePages}>{children}</ConditionalLayout>
         <CookieBanner />
         <Analytics />
         <SpeedInsights />

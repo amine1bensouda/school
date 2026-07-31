@@ -112,6 +112,22 @@ function shouldBlockIndexing(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Canonical host: www → non-www (301) pour ne pas diluer le SEO.
+  const rawHost = (
+    request.headers.get('x-forwarded-host') ||
+    request.headers.get('host') ||
+    ''
+  )
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+  if (rawHost.startsWith('www.')) {
+    const url = request.nextUrl.clone();
+    url.hostname = rawHost.replace(/^www\./, '');
+    url.protocol = 'https:';
+    return NextResponse.redirect(url, 301);
+  }
+
   // Protection auth: bloquer les accès non-authentifiés aux routes /api/admin/*
   // sauf l'endpoint de login.
   if (isAdminApiRequest(pathname) && !isPublicAdminApi(pathname)) {

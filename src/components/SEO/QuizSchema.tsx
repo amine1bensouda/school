@@ -13,6 +13,33 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
   const title = stripHtml(quiz.title.rendered);
   const description = stripHtml(quiz.excerpt?.rendered || quiz.content?.rendered || '');
 
+  const hasPart = questions.map((question, index) => {
+    const text = stripHtml(
+      question.texte_question ||
+        question.title?.rendered ||
+        question.content?.rendered ||
+        `Question ${index + 1}`
+    );
+    const answers = question.reponses || question.acf?.reponses || [];
+    const suggestedAnswers = answers
+      .map((answer) => stripHtml(answer.texte || ''))
+      .filter(Boolean)
+      .map((answerText) => ({
+        '@type': 'Answer',
+        text: answerText,
+      }));
+
+    return {
+      '@type': 'Question',
+      name: text,
+      text,
+      position: index + 1,
+      ...(suggestedAnswers.length > 0 && {
+        suggestedAnswer: suggestedAnswers,
+      }),
+    };
+  });
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Quiz',
@@ -36,6 +63,7 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
         name: quiz.acf.categorie,
       },
     }),
+    ...(hasPart.length > 0 && { hasPart }),
   };
 
   return (

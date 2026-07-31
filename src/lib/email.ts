@@ -274,7 +274,7 @@ export async function sendContactFormEmail(payload: {
   const message = payload.message.trim();
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-    'https://www.theschoolofmathematics.com';
+    'https://theschoolofmathematics.com';
 
   // Sujet simple (moins « promo ») pour limiter le filtre anti-spam
   const subject = `Website contact from ${name}`;

@@ -7,6 +7,7 @@ import { getQuizList } from '@/lib/quiz-service';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
 import CommentsSection from '@/components/Comments/CommentsSection';
 import QuizSchema from '@/components/SEO/QuizSchema';
+import QuizQuestionsSeoContent from '@/components/SEO/QuizQuestionsSeoContent';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import FaqSchema from '@/components/SEO/FaqSchema';
 import { SITE_URL } from '@/lib/constants';
@@ -185,6 +186,7 @@ export default async function QuizPage({ params }: PageProps) {
       <QuizSchema quiz={quiz} />
       <BreadcrumbSchema items={breadcrumbItems} />
       <FaqSchema items={faqs} />
+      <QuizQuestionsSeoContent quiz={quiz} />
 
       <div className="bg-gradient-to-b from-white via-gray-50 to-white">
         <div className="container mx-auto px-4 py-8 md:py-12">

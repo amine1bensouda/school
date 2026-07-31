@@ -6,10 +6,20 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SITE_NAME } from '@/lib/constants';
 import { getCurrentUser } from '@/lib/auth-client';
+import {
+  shortPracticePageTitle,
+  type PracticePageLink,
+} from '@/lib/practice-pages';
 
-export default function Header() {
+export default function Header({
+  practicePages = [],
+}: {
+  practicePages?: PracticePageLink[];
+}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [legalMenuOpen, setLegalMenuOpen] = useState(false);
+  const [practiceMenuOpen, setPracticeMenuOpen] = useState(false);
+  const [mobilePracticeOpen, setMobilePracticeOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
@@ -24,6 +34,8 @@ export default function Header() {
 
   useEffect(() => {
     setLegalMenuOpen(false);
+    setPracticeMenuOpen(false);
+    setMobilePracticeOpen(false);
   }, [pathname]);
 
   const isActive = (path: string) => {
@@ -33,12 +45,14 @@ export default function Header() {
     return pathname === path || pathname?.startsWith(path);
   };
 
+  const practiceActive = isActive('/pages');
+
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-xl bg-white/95 shadow-lg">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="flex items-center gap-3 group animate-fade-in"
           >
             <div className="relative ml-3">
@@ -61,16 +75,16 @@ export default function Header() {
               )}
               <div className="absolute -inset-1 bg-gradient-to-r from-gray-800 via-black to-gray-800 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-black to-gray-900 bg-clip-text text-transparent tracking-tight">{SITE_NAME}</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-black to-gray-900 bg-clip-text text-transparent tracking-tight">
+              {SITE_NAME}
+            </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-0">
             <Link
               href="/"
               className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/') 
-                  ? 'bg-gray-100 rounded-lg' 
-                  : 'hover:text-gray-900'
+                isActive('/') ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
               Home
@@ -81,9 +95,7 @@ export default function Header() {
             <Link
               href="/quiz"
               className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/quiz') 
-                  ? 'bg-gray-100 rounded-lg' 
-                  : 'hover:text-gray-900'
+                isActive('/quiz') ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
               Exams
@@ -91,11 +103,64 @@ export default function Header() {
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
               )}
             </Link>
+            {practicePages.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPracticeMenuOpen((prev) => !prev);
+                    setLegalMenuOpen(false);
+                  }}
+                  className={`px-6 py-3 font-medium text-gray-800 transition-colors relative rounded-lg flex items-center gap-1.5 ${
+                    practiceActive ? 'bg-gray-100' : 'hover:text-gray-900'
+                  }`}
+                  aria-expanded={practiceMenuOpen}
+                  aria-haspopup="true"
+                  aria-label="Open Practice Guide menu"
+                >
+                  Practice Guide
+                  <svg
+                    className={`w-4 h-4 transition-transform ${practiceMenuOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                  {practiceActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
+                  )}
+                </button>
+                {practiceMenuOpen && (
+                  <div className="absolute left-0 mt-2 w-80 max-h-[70vh] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg py-2 z-50">
+                    {practicePages.map((page) => (
+                      <Link
+                        key={page.slug}
+                        href={`/pages/${page.slug}`}
+                        title={page.title}
+                        className={`block px-4 py-2.5 text-sm hover:bg-gray-50 ${
+                          pathname === `/pages/${page.slug}`
+                            ? 'bg-gray-100 text-gray-900 font-medium'
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        {shortPracticePageTitle(page.title)}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <Link
               href="/about-us"
               className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/about-us') 
-                  ? 'bg-gray-100 rounded-lg' 
+                isActive('/about-us')
+                  ? 'bg-gray-100 rounded-lg'
                   : 'hover:text-gray-900'
               }`}
             >
@@ -107,9 +172,7 @@ export default function Header() {
             <Link
               href="/blogs"
               className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/blogs') 
-                  ? 'bg-gray-100 rounded-lg' 
-                  : 'hover:text-gray-900'
+                isActive('/blogs') ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
               Blogs
@@ -120,7 +183,10 @@ export default function Header() {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setLegalMenuOpen((prev) => !prev)}
+                onClick={() => {
+                  setLegalMenuOpen((prev) => !prev);
+                  setPracticeMenuOpen(false);
+                }}
                 className={`px-6 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center gap-2 ${
                   isActive('/terms-of-service') ||
                   isActive('/privacy-policy') ||
@@ -138,7 +204,12 @@ export default function Header() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
               {legalMenuOpen && (
@@ -172,8 +243,8 @@ export default function Header() {
               <Link
                 href="/dashboard"
                 className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 ${
-                  isActive('/dashboard') 
-                    ? 'bg-gray-900 text-white' 
+                  isActive('/dashboard')
+                    ? 'bg-gray-900 text-white'
                     : 'bg-gray-900 text-white hover:bg-black'
                 }`}
               >
@@ -205,9 +276,19 @@ export default function Header() {
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -221,9 +302,7 @@ export default function Header() {
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
+                  isActive('/') ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 Home
@@ -232,20 +311,64 @@ export default function Header() {
                 href="/quiz"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/quiz') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
+                  isActive('/quiz') ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 Exams
               </Link>
+              {practicePages.length > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePracticeOpen((prev) => !prev)}
+                    className={`w-full px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center justify-between ${
+                      practiceActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+                    }`}
+                    aria-expanded={mobilePracticeOpen}
+                  >
+                    Practice Guide
+                    <svg
+                      className={`w-4 h-4 transition-transform ${
+                        mobilePracticeOpen ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {mobilePracticeOpen && (
+                    <div className="ml-2 mt-1 max-h-64 overflow-y-auto border-l border-gray-200 pl-2">
+                      {practicePages.map((page) => (
+                        <Link
+                          key={page.slug}
+                          href={`/pages/${page.slug}`}
+                          title={page.title}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`block px-3 py-2 text-sm rounded-lg ${
+                            pathname === `/pages/${page.slug}`
+                              ? 'bg-gray-100 text-gray-900 font-medium'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {shortPracticePageTitle(page.title)}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <Link
                 href="/about-us"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/about-us') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
+                  isActive('/about-us') ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 About us
@@ -254,9 +377,7 @@ export default function Header() {
                 href="/blogs"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/blogs') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
+                  isActive('/blogs') ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 Blogs
@@ -266,9 +387,7 @@ export default function Header() {
                 href="/terms-of-service"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/terms-of-service')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
+                  isActive('/terms-of-service') ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 Terms of Service
@@ -277,9 +396,7 @@ export default function Header() {
                 href="/privacy-policy"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/privacy-policy')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
+                  isActive('/privacy-policy') ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 Privacy Policy
@@ -288,9 +405,7 @@ export default function Header() {
                 href="/contact-us"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/contact-us')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
+                  isActive('/contact-us') ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 Contact Us
@@ -329,4 +444,3 @@ export default function Header() {
     </header>
   );
 }
-

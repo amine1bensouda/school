@@ -2,7 +2,18 @@
 
 export const SITE_NAME = 'The School of Mathematics';
 export const SITE_DESCRIPTION = 'Test your knowledge with our interactive mathematics quizzes';
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theschoolofmathematics.com';
+
+/** Canonical toujours en non-www (évite le split d’autorité www / non-www). */
+function normalizeSiteUrl(url: string): string {
+  return url
+    .trim()
+    .replace(/\/+$/, '')
+    .replace(/^(https?:\/\/)www\./i, '$1');
+}
+
+export const SITE_URL = normalizeSiteUrl(
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://theschoolofmathematics.com'
+);
 
 /** Google Analytics 4 — surcharge possible via NEXT_PUBLIC_GA_MEASUREMENT_ID */
 export const GA_MEASUREMENT_ID =

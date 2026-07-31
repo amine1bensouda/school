@@ -25,6 +25,7 @@ interface QuizPlayerProps {
 }
 
 export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
+  const initialQuestions = quiz.acf?.questions || [];
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
@@ -32,7 +33,8 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const [results, setResults] = useState<QuizResults | null>(null);
   const [sessionStartedAt, setSessionStartedAt] = useState(Date.now());
   const sessionRef = useRef<QuizSessionData | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  // État initial = questions serveur → HTML crawlable (pas "Loading quiz..." au 1er paint)
+  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null); // Timer pour la question actuelle
   const [quizTimeRemaining, setQuizTimeRemaining] = useState<number | null>(null); // Timer global pour le quiz
   const [sidebarOpen, setSidebarOpen] = useState(true);
