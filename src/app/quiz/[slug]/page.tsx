@@ -14,7 +14,7 @@ import { SITE_URL } from '@/lib/constants';
 import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
 import { sanitizeHtml } from '@/lib/sanitize-html';
 import { buildQuizFaqs, buildQuizIntro } from '@/lib/seo-content';
-import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
+import { resolveSeoDescription, resolveSeoTitle, buildQuizPublicTitle } from '@/lib/seo-meta';
 
 export const revalidate = 3600; // Revalider toutes les heures
 
@@ -50,7 +50,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = stripHtml(quiz.title.rendered);
+  const rawTitle = stripHtml(quiz.title.rendered);
+  const title = buildQuizPublicTitle({
+    title: rawTitle,
+    category: quiz.acf?.categorie,
+    slug: quiz.slug || params.slug,
+  });
   const fallbackDescription = stripHtml(quiz.excerpt?.rendered || quiz.content.rendered);
   const seoTitle = resolveSeoTitle(quiz.metaTitle, title);
   const seoDescription = resolveSeoDescription(
@@ -113,7 +118,12 @@ export default async function QuizPage({ params }: PageProps) {
     permanentRedirect(`/quiz/${encodeURIComponent(canonicalSlug)}`);
   }
 
-  const title = stripHtml(quiz.title.rendered);
+  const rawTitle = stripHtml(quiz.title.rendered);
+  const title = buildQuizPublicTitle({
+    title: rawTitle,
+    category: quiz.acf?.categorie,
+    slug: canonicalSlug,
+  });
   const description = quiz.excerpt?.rendered || '';
   const difficulty = quiz.acf?.niveau_difficulte;
   const duration = quiz.acf?.duree_estimee;
@@ -145,7 +155,11 @@ export default async function QuizPage({ params }: PageProps) {
       .slice(0, 4)
       .map((q) => ({
         slug: q.slug,
-        title: stripHtml(q.title.rendered),
+        title: buildQuizPublicTitle({
+          title: stripHtml(q.title.rendered),
+          category: q.acf?.categorie,
+          slug: q.slug,
+        }),
         questionCount: q.acf?.nombre_questions || 0,
       }));
     if (relatedQuizzes.length < 2) {
@@ -154,7 +168,11 @@ export default async function QuizPage({ params }: PageProps) {
         .slice(0, 4)
         .map((q) => ({
           slug: q.slug,
-          title: stripHtml(q.title.rendered),
+          title: buildQuizPublicTitle({
+            title: stripHtml(q.title.rendered),
+            category: q.acf?.categorie,
+            slug: q.slug,
+          }),
           questionCount: q.acf?.nombre_questions || 0,
         }));
     }
