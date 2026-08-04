@@ -2,6 +2,7 @@ import type { Quiz } from '@/lib/types';
 import { SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
 import { safeJsonLd } from '@/lib/sanitize-html';
+import { buildQuizPublicTitle } from '@/lib/seo-meta';
 
 interface QuizSchemaProps {
   quiz: Quiz;
@@ -10,7 +11,11 @@ interface QuizSchemaProps {
 export default function QuizSchema({ quiz }: QuizSchemaProps) {
   const questions = quiz.acf?.questions || [];
   const questionCount = questions.length;
-  const title = stripHtml(quiz.title.rendered);
+  const title = buildQuizPublicTitle({
+    title: stripHtml(quiz.title.rendered),
+    category: quiz.acf?.categorie,
+    slug: quiz.slug,
+  });
   const description = stripHtml(quiz.excerpt?.rendered || quiz.content?.rendered || '');
 
   const hasPart = questions.map((question, index) => {
@@ -45,7 +50,7 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
     '@type': 'Quiz',
     name: title,
     description,
-    url: `${SITE_URL}/quiz/${quiz.slug}`,
+    url: `${SITE_URL}/quiz/${encodeURIComponent(quiz.slug)}`,
     ...(quiz.featured_media_url && {
       image: quiz.featured_media_url,
     }),
