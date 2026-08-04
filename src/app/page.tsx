@@ -12,6 +12,7 @@ import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 export const metadata: Metadata = {
   title: 'Home',
   description: SITE_DESCRIPTION,
+  alternates: { canonical: '/' },
 };
 
 export const revalidate = 3600;

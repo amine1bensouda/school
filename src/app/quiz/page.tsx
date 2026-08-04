@@ -1,51 +1,31 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import type { Metadata } from 'next';
 import Navigation from '@/components/Layout/Navigation';
-import AnimatedShapes from '@/components/Layout/AnimatedShapes';
-import BackgroundPattern from '@/components/Layout/BackgroundPattern';
+import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
+import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 import CourseCard from '@/components/Quiz/CourseCard';
-import LoadingSpinner from '@/components/Layout/LoadingSpinner';
+import { getCourses } from '@/lib/cache';
+import { SITE_NAME } from '@/lib/constants';
 
-interface Course {
-  id: string;
-  title: string;
-  slug: string;
-  description: string | null;
-  moduleCount: number;
-  totalQuizzes: number;
-}
+export const revalidate = 300;
 
-export default function QuizListPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [totalQuizzes, setTotalQuizzes] = useState(0);
-  const [loading, setLoading] = useState(true);
+export const metadata: Metadata = {
+  title: 'All Exams',
+  description: `Discover all our practice exams and interactive tests on mathematics topics at ${SITE_NAME}`,
+  alternates: { canonical: '/quiz' },
+};
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Charger les cours
-        const coursesResponse = await fetch('/api/courses');
-        if (coursesResponse.ok) {
-          const coursesData = await coursesResponse.json();
-          setCourses(coursesData);
-          
-          // Calculer le total de quiz (payload léger)
-          const total = coursesData.reduce(
-            (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
-            0
-          );
-          setTotalQuizzes(total);
-        }
-      } catch (error) {
-        console.error('Erreur chargement données:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
+export default async function QuizListPage() {
+  let courses: Awaited<ReturnType<typeof getCourses>> = [];
+  try {
+    courses = await getCourses();
+  } catch {
+    courses = [];
+  }
 
-    loadData();
-  }, []);
+  const totalQuizzes = courses.reduce(
+    (sum, course) => sum + (course.totalQuizzes || 0),
+    0
+  );
 
   return (
     <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
@@ -53,46 +33,31 @@ export default function QuizListPage() {
       <BackgroundPattern variant="luxury" opacity={0.12} />
       <Navigation />
       <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
-        {/* Hero Section */}
         <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-6 leading-tight">
             All Exams
           </h1>
-          {!loading && (
-            <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block">
-              {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your knowledge and improve your mathematics skills
-            </p>
-          )}
+          <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block">
+            {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your
+            knowledge and improve your mathematics skills
+          </p>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
-              <LoadingSpinner size="lg" />
-              <div className="w-full space-y-3 mt-2">
-                <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
-                <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
-              </div>
-            </div>
-          </div>
-        ) : courses.length > 0 ? (
+        {courses.length > 0 ? (
           <div className="space-y-8">
             <h2 className="sr-only">Available courses</h2>
-            {/* Cartes des cours */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map((course) => {
-                return (
-                  <CourseCard
-                    key={course.id}
-                    id={course.id}
-                    title={course.title}
-                    description={course.description}
-                    moduleCount={course.moduleCount}
-                    totalQuizzes={course.totalQuizzes}
-                    slug={course.slug}
-                  />
-                );
-              })}
+              {courses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  id={course.id}
+                  title={course.title}
+                  description={course.description}
+                  moduleCount={course.moduleCount}
+                  totalQuizzes={course.totalQuizzes}
+                  slug={course.slug}
+                />
+              ))}
             </div>
           </div>
         ) : (

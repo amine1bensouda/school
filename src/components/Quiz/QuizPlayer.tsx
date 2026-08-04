@@ -486,7 +486,11 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   if (!currentQuestion) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Loading quiz...</p>
+        <p className="text-gray-600">
+          {initialQuestions.length === 0
+            ? 'No questions available for this quiz.'
+            : 'Loading quiz...'}
+        </p>
       </div>
     );
   }

@@ -22,9 +22,6 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: ['quiz', 'test', 'mathematics', 'math', 'education', 'learning'],
   authors: [{ name: SITE_NAME }],
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

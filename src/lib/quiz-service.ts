@@ -201,6 +201,10 @@ export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
 
     if (!quiz) return null;
 
+    if (quiz.isEnabled === false) {
+      return null;
+    }
+
     // Vérifier que le cours est publié
     if (quiz.module && quiz.module.course.status !== 'published') {
       console.log(`⚠️ Quiz ${slug} non accessible: cours en brouillon`);
@@ -215,11 +219,16 @@ export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
 }
 
 /**
- * Récupère tous les slugs de quiz
+ * Récupère les slugs de quiz indexables (enabled + cours publié ou sans module + ≥1 question).
+ * Utilisé par le sitemap — ne pas lister d’URLs soft-404.
  */
 export async function getAllQuizSlugs(): Promise<string[]> {
   try {
     const quizzes = await prisma.quiz.findMany({
+      where: {
+        ...PUBLISHED_QUIZ_WHERE,
+        questions: { some: {} },
+      },
       select: {
         slug: true,
       },

@@ -45,6 +45,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: 'Quiz Not Found',
       robots: { index: false, follow: false },
+      // Évite d’hériter du canonical /quiz (soft-404 consolidé vers le hub)
+      alternates: { canonical: `/quiz/${encodeURIComponent(params.slug)}` },
     };
   }
 
@@ -186,7 +188,6 @@ export default async function QuizPage({ params }: PageProps) {
       <QuizSchema quiz={quiz} />
       <BreadcrumbSchema items={breadcrumbItems} />
       <FaqSchema items={faqs} />
-      <QuizQuestionsSeoContent quiz={quiz} />
 
       <div className="bg-gradient-to-b from-white via-gray-50 to-white">
         <div className="container mx-auto px-4 py-8 md:py-12">
@@ -301,6 +302,8 @@ export default async function QuizPage({ params }: PageProps) {
           </div>
 
         <QuizPlayer quiz={quiz} />
+
+          <QuizQuestionsSeoContent quiz={quiz} />
 
           {relatedQuizzes.length > 0 && (
             <section className="mt-12 mb-10">
