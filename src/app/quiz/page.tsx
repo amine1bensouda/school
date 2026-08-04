@@ -3,7 +3,7 @@ import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
 import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 import CourseCard from '@/components/Quiz/CourseCard';
-import { getCourses } from '@/lib/cache';
+import { getPublishedCoursesSummary } from '@/lib/course-service';
 import { SITE_NAME } from '@/lib/constants';
 
 export const revalidate = 300;
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 };
 
 export default async function QuizListPage() {
-  let courses: Awaited<ReturnType<typeof getCourses>> = [];
+  let courses: Awaited<ReturnType<typeof getPublishedCoursesSummary>> = [];
   try {
-    courses = await getCourses();
+    courses = await getPublishedCoursesSummary();
   } catch {
     courses = [];
   }
