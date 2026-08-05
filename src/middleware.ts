@@ -112,9 +112,10 @@ function shouldBlockIndexing(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Canonical host: www → non-www (301) pour ne pas diluer le SEO.
-  // Important derrière nginx/PM2 : nextUrl garde souvent le port interne (:3001).
-  // Il faut l’effacer sinon les redirects affichent theschoolofmathematics.com:3001/...
+  // Canonical host: www → non-www (301).
+  // Derrière nginx/PM2, nextUrl.port est souvent "3001" en interne — NE PAS
+  // rediriger juste pour ça (sinon boucle ERR_TOO_MANY_REDIRECTS).
+  // On ne nettoie le port que s'il apparaît dans le Host public (rare).
   const rawHost = (
     request.headers.get('x-forwarded-host') ||
     request.headers.get('host') ||
@@ -124,12 +125,10 @@ export async function middleware(request: NextRequest) {
     .trim()
     .toLowerCase();
   const hostNoPort = rawHost.replace(/:\d+$/, '');
-  const internalPort =
-    request.nextUrl.port === '3000' ||
-    request.nextUrl.port === '3001' ||
-    /:(3000|3001)$/.test(rawHost);
+  const publicHasInternalPort = /:(3000|3001)$/.test(rawHost);
+  const needsWwwStrip = hostNoPort.startsWith('www.');
 
-  if (hostNoPort.startsWith('www.') || (internalPort && hostNoPort.endsWith('theschoolofmathematics.com'))) {
+  if (needsWwwStrip || publicHasInternalPort) {
     const url = request.nextUrl.clone();
     url.hostname = hostNoPort.replace(/^www\./, '');
     url.protocol = 'https:';
