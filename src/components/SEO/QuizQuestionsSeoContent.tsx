@@ -24,7 +24,7 @@ export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
       className="mt-10 mb-8 rounded-2xl border border-gray-200 bg-white p-6 md:p-8"
       data-seo-quiz-questions="true"
     >
-      <details className="group">
+      <details className="group" open>
         <summary className="cursor-pointer list-none flex items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-gray-900">
             Questions in this quiz ({questions.length})

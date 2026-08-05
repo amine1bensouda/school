@@ -6,7 +6,15 @@ import { SITE_URL } from '@/lib/constants';
  * AdsBot-Google ignore User-agent: * → Allow explicite requis pour les landings quiz (Google Ads).
  */
 export default function robots(): MetadataRoute.Robots {
-  const disallowPrivate = ['/api/', '/admin/', '/dashboard/', '/login', '/register'];
+  const disallowPrivate = [
+    '/api/',
+    '/admin/',
+    '/dashboard/',
+    '/login',
+    '/register',
+    '/quiz/*/correction',
+    '/quiz/*/results',
+  ];
 
   return {
     rules: [
@@ -23,7 +31,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/'],
+        disallow: disallowPrivate,
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

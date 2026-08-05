@@ -1,5 +1,6 @@
 import { prisma } from './db';
 import { getAllPublishedCoursesData, getCourses, getPublishedCoursesSummaryData } from './cache';
+import { INDEXABLE_QUIZ_WHERE } from './quiz-filters';
 import { convertPrismaQuizToQuiz } from './quiz-service';
 
 /**
@@ -60,6 +61,7 @@ export async function getCourseBySlug(slug: string) {
             description: true,
             order: true,
             quizzes: {
+              where: INDEXABLE_QUIZ_WHERE,
               select: {
                 id: true,
                 slug: true,

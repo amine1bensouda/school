@@ -1,3 +1,5 @@
+import { SITE_URL } from '@/lib/constants';
+
 const blockedElements = /<(script|style|iframe|object|embed|form|input|button|textarea|select|option|meta|link|base|svg|math)\b[^>]*>[\s\S]*?<\/\1\s*>|<(script|style|iframe|object|embed|form|input|button|textarea|select|option|meta|link|base|svg|math)\b[^>]*\/?>/gi;
 const eventHandler = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const unsafeUrl = /\s+(href|src|xlink:href|action|formaction)\s*=\s*(["'])\s*(?:javascript:|vbscript:|data:text\/html)[\s\S]*?\2/gi;
@@ -10,10 +12,21 @@ const srcDoc = /\s+srcdoc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
  */
 export function normalizeSiteUrls(html: string): string {
   if (!html) return '';
-  return html.replace(
-    /https?:\/\/(?:www\.)?theschoolofmathematics\.com(?::\d+)?(\/[^"'\\\s>]*)?/gi,
-    (_match, path: string | undefined) => path || '/'
+
+  let hostname = 'theschoolofmathematics.com';
+  try {
+    hostname = new URL(SITE_URL).hostname.replace(/^www\./i, '');
+  } catch {
+    // fallback domaine par défaut
+  }
+
+  const hostPattern = hostname.replace(/\./g, '\\.');
+  const siteUrlPattern = new RegExp(
+    `https?:\\/\\/(?:www\\.)?${hostPattern}(?::\\d+)?(\\/[^"'\\\\\\s>]*)?`,
+    'gi'
   );
+
+  return html.replace(siteUrlPattern, (_match, path: string | undefined) => path || '/');
 }
 
 /** Sanitization boundary used for every piece of CMS/user-authored HTML. */

@@ -1,8 +1,7 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
-import { getAllQuizSlugs } from '@/lib/quiz-service';
-import { getCourses, getAllPublishedPagesData } from '@/lib/cache';
-import { getAllCategories } from '@/lib/quiz-service';
+import { getAllQuizSlugs, getIndexableCategorySlugs } from '@/lib/quiz-service';
+import { getPublishedCoursesSummaryData, getAllPublishedPagesData } from '@/lib/cache';
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 
 export const dynamic = 'force-dynamic';
@@ -94,26 +93,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Erreur récupération slugs quiz pour sitemap:', error);
   }
 
-  // Récupérer tous les cours publiés
+  // Cours publiés avec au moins un quiz indexable
   let coursePages: MetadataRoute.Sitemap = [];
   try {
-    const courses = await getCourses();
-    coursePages = courses.map((course) => ({
-      url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }));
+    const courses = await getPublishedCoursesSummaryData();
+    coursePages = courses
+      .filter((course) => course.totalQuizzes > 0)
+      .map((course) => ({
+        url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }));
   } catch (error) {
     console.error('Erreur récupération cours pour sitemap:', error);
   }
 
-  // Récupérer toutes les catégories
+  // Catégories uniques avec quiz indexables
   let categoryPages: MetadataRoute.Sitemap = [];
   try {
-    const categories = await getAllCategories();
-    categoryPages = categories.map((category) => ({
-      url: `${baseUrl}/categorie/${encodeURIComponent(category.slug)}`,
+    const categorySlugs = await getIndexableCategorySlugs();
+    categoryPages = categorySlugs.map((slug) => ({
+      url: `${baseUrl}/categorie/${encodeURIComponent(slug)}`,
       lastModified: currentDate,
       changeFrequency: 'weekly' as const,
       priority: 0.7,

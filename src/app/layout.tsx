@@ -65,6 +65,7 @@ export default async function RootLayout({
   try {
     const pages = await getAllPublishedPagesData();
     practicePages = pages
+      .filter((page) => !page.noIndex)
       .map((page) => ({
         title: page.title,
         slug: page.slug,

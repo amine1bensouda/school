@@ -5,6 +5,7 @@ import ContactForm from '@/components/Contact/ContactForm';
 export const metadata: Metadata = {
   title: 'Contact Us',
   description: `Get in touch with ${SITE_NAME} - We'd love to hear from you`,
+  alternates: { canonical: '/contact-us' },
 };
 
 const CONTACT_EMAIL = 'contact@schoolofmathematics.com';

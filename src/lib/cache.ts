@@ -1,5 +1,6 @@
 import { revalidateTag, unstable_cache } from 'next/cache';
 import { prisma } from './db';
+import { INDEXABLE_QUIZ_WHERE } from './quiz-filters';
 
 /**
  * Tag Next.js pour invalider tout le cache cours d’un coup.
@@ -95,10 +96,9 @@ export const getPublishedCoursesSummaryData = unstable_cache(
         description: true,
         modules: {
           select: {
-            _count: {
-              select: {
-                quizzes: true,
-              },
+            quizzes: {
+              where: INDEXABLE_QUIZ_WHERE,
+              select: { id: true },
             },
           },
         },
@@ -120,7 +120,7 @@ export const getPublishedCoursesSummaryData = unstable_cache(
       description: course.description,
       moduleCount: course._count.modules,
       totalQuizzes: course.modules.reduce(
-        (sum, module) => sum + (module._count?.quizzes ?? 0),
+        (sum, module) => sum + module.quizzes.length,
         0
       ),
     }));
@@ -235,18 +235,7 @@ export const getPublishedQuizListData = unstable_cache(
 
     const quizzes = await prisma.quiz.findMany({
       where: {
-        OR: [
-          {
-            module: {
-              course: {
-                status: 'published',
-              },
-            },
-          },
-          {
-            moduleId: null,
-          },
-        ],
+        ...INDEXABLE_QUIZ_WHERE,
         ...(moduleSlug
           ? {
               module: {
