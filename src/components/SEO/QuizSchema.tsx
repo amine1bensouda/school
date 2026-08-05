@@ -19,12 +19,16 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
   const description = stripHtml(quiz.excerpt?.rendered || quiz.content?.rendered || '');
 
   const hasPart = questions.map((question, index) => {
-    const text = stripHtml(
+    const raw =
       question.texte_question ||
-        question.title?.rendered ||
-        question.content?.rendered ||
-        `Question ${index + 1}`
+      question.title?.rendered ||
+      question.content?.rendered ||
+      `Question ${index + 1}`;
+    const withAlt = raw.replace(
+      /<img\b[^>]*\balt\s*=\s*(["'])(.*?)\1[^>]*>/gi,
+      (_match, _q: string, alt: string) => (alt.trim() ? ` ${alt.trim()} ` : ' ')
     );
+    const text = stripHtml(withAlt).replace(/\s+/g, ' ').trim() || `Question ${index + 1}`;
     const answers = question.reponses || question.acf?.reponses || [];
     const suggestedAnswers = answers
       .map((answer) => stripHtml(answer.texte || ''))

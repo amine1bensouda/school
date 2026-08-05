@@ -319,9 +319,10 @@ export default async function QuizPage({ params }: PageProps) {
             </div>
           </div>
 
-        <QuizPlayer quiz={quiz} />
-
+          {/* Questions texte AVANT le player JS — crawl Gemini / Google / AdsBot */}
           <QuizQuestionsSeoContent quiz={quiz} />
+
+          <QuizPlayer quiz={quiz} />
 
           {relatedQuizzes.length > 0 && (
             <section className="mt-12 mb-10">

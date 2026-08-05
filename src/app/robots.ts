@@ -28,6 +28,12 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/', '/quiz', '/quiz/', '/pages/', '/categorie/', '/blogs/'],
         disallow: disallowPrivate,
       },
+      // Gemini Apps / grounding (token robots, pas un crawler HTTP séparé)
+      {
+        userAgent: 'Google-Extended',
+        allow: '/',
+        disallow: disallowPrivate,
+      },
       {
         userAgent: '*',
         allow: '/',
