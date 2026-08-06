@@ -1,30 +1,42 @@
+'use client';
+
 import type { Quiz } from '@/lib/types';
-import { stripHtml } from '@/lib/utils';
+import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
+import MathRenderer from '@/components/Quiz/MathRenderer';
+import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
-/**
- * Texte crawlable d’un énoncé : alt des images + HTML strippé.
- * Utile quand la question n’est qu’une image (cas fréquent en math).
- */
-function questionPlainText(raw: string | undefined | null, fallback: string): string {
-  if (!raw) return fallback;
+function prepareStem(raw: string | undefined | null, fallback: string): string {
+  if (!raw || !raw.trim()) return fallback;
+  return raw;
+}
 
-  const withAlt = raw.replace(
-    /<img\b[^>]*\balt\s*=\s*(["'])(.*?)\1[^>]*>/gi,
-    (_match, _q: string, alt: string) => (alt.trim() ? ` ${alt.trim()} ` : ' ')
-  );
+function QuizMathText({ raw, fallback }: { raw: string | undefined | null; fallback: string }) {
+  const text = prepareStem(raw, fallback);
+  if (!text.trim()) return null;
 
-  const plain = stripHtml(withAlt)
-    .replace(/\u00a0/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  if (questionStemNeedsHtmlRenderer(text)) {
+    return (
+      <HtmlWithMathRenderer
+        html={text}
+        className="prose prose-sm max-w-none inline"
+      />
+    );
+  }
 
-  return plain || fallback;
+  // Nettoyage léger comme Question.tsx (sans stripper le LaTeX)
+  const cleaned = text
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?div[^>]*>/gi, ' ')
+    .replace(/<\/?span[^>]*>/gi, '');
+
+  return <MathRenderer text={cleaned || fallback} />;
 }
 
 /**
- * Questions en HTML serveur (SSR) — visibles pour Google / Gemini / AdsBot.
- * Placées AVANT le QuizPlayer (JS) pour apparaître tôt dans le HTML.
- * Pas de <details> : certains fetchers IA le truncatent ou l’ignorent.
+ * Questions en HTML (SSR client) avec KaTeX — lisibles humains + crawlables.
+ * Placées AVANT le QuizPlayer pour apparaître tôt dans le HTML.
  */
 export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
   const questions = quiz.acf?.questions || [];
@@ -41,23 +53,27 @@ export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
       </h2>
       <ol className="mt-6 space-y-6 list-decimal list-inside">
         {questions.map((question, index) => {
-          const text = questionPlainText(
+          const raw =
             question.texte_question ||
-              question.title?.rendered ||
-              question.content?.rendered,
-            `Question ${index + 1}`
-          );
+            question.title?.rendered ||
+            question.content?.rendered ||
+            `Question ${index + 1}`;
           const answers = question.reponses || question.acf?.reponses || [];
 
           return (
             <li key={question.id ?? index} className="text-gray-900">
-              <span className="font-medium leading-relaxed">{text}</span>
+              <span className="font-medium leading-relaxed [&>*]:inline">
+                <QuizMathText raw={raw} fallback={`Question ${index + 1}`} />
+              </span>
               {answers.length > 0 && (
                 <ul className="mt-2 ml-5 list-disc space-y-1 text-gray-700">
                   {answers.map((answer, answerIndex) => {
-                    const answerText = questionPlainText(answer.texte, '');
-                    if (!answerText) return null;
-                    return <li key={answerIndex}>{answerText}</li>;
+                    if (!answer.texte?.trim()) return null;
+                    return (
+                      <li key={answerIndex} className="[&>*]:inline">
+                        <QuizMathText raw={answer.texte} fallback="" />
+                      </li>
+                    );
                   })}
                 </ul>
               )}
