@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { notFound, permanentRedirect } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,6 +23,13 @@ interface PageProps {
   params: {
     slug: string;
   };
+}
+
+function isCrawlerUserAgent(userAgent: string): boolean {
+  const ua = (userAgent || '').toLowerCase();
+  return /(googlebot|adsbot|bingbot|duckduckbot|baiduspider|yandexbot|slurp|crawler|spider|google-inspectiontool|gemini)/.test(
+    ua
+  );
 }
 
 // Toujours [] pour éviter des centaines de pages au build → épuisement du pool PostgreSQL (Hostinger/Supabase)
@@ -98,6 +106,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function QuizPage({ params }: PageProps) {
+  const userAgent = headers().get('user-agent') || '';
+  const shouldRenderSeoQuestions = isCrawlerUserAgent(userAgent);
+
   // Décoder le slug pour gérer les espaces encodés (%20)
   const decodedSlug = decodeURIComponent(params.slug);
   
@@ -319,8 +330,8 @@ export default async function QuizPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Questions texte AVANT le player JS — crawl Gemini / Google / AdsBot */}
-          <QuizQuestionsSeoContent quiz={quiz} />
+          {/* Questions texte AVANT le player JS — seulement pour crawlers */}
+          {shouldRenderSeoQuestions && <QuizQuestionsSeoContent quiz={quiz} />}
 
           <QuizPlayer quiz={quiz} />
 
