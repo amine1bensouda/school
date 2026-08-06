@@ -64,7 +64,12 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
       mathMatches.push({
         start: match.index,
         end: match.index + match[0].length,
-        formula: match[1].trim(),
+        formula: match[1]
+          .replace(/<br\s*\/?>/gi, ' ')
+          .replace(/<\/?p[^>]*>/gi, ' ')
+          .replace(/<[^>]+>/g, '')
+          .replace(/\s*\n\s*/g, ' ')
+          .trim(),
         isBlock: true,
       });
     }
@@ -82,7 +87,12 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
           mathMatches.push({
             start: match.index,
             end: match.index + match[0].length,
-            formula: match[1].trim(),
+            formula: match[1]
+              .replace(/<br\s*\/?>/gi, ' ')
+              .replace(/<\/?p[^>]*>/gi, ' ')
+              .replace(/<[^>]+>/g, '')
+              .replace(/\s*\n\s*/g, ' ')
+              .trim(),
             isBlock: false,
           });
         }
