@@ -319,10 +319,8 @@ export default async function QuizPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Bloc SEO gardé dans le HTML, masqué visuellement pour éviter le doublon */}
-          <div className="hidden">
-            <QuizQuestionsSeoContent quiz={quiz} />
-          </div>
+          {/* Questions SSR (sr-only) — HTML initial crawlable sans JS */}
+          <QuizQuestionsSeoContent quiz={quiz} />
 
           <QuizPlayer quiz={quiz} />
 
