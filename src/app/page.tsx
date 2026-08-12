@@ -4,15 +4,23 @@ import { getFeaturedQuiz } from '@/lib/quiz-service';
 import { getStats } from '@/lib/wordpress';
 import { getAllPublishedCourses } from '@/lib/course-service';
 import QuizCard from '@/components/Quiz/QuizCard';
-import { SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
+import { SITE_NAME, SITE_DESCRIPTION, SITE_HOME_TITLE } from '@/lib/constants';
 import { formatNumber } from '@/lib/utils';
 import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
 import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 
 export const metadata: Metadata = {
-  title: 'Home',
+  title: {
+    absolute: `${SITE_HOME_TITLE} | ${SITE_NAME}`,
+  },
   description: SITE_DESCRIPTION,
   alternates: { canonical: '/' },
+  openGraph: {
+    title: `${SITE_HOME_TITLE} | ${SITE_NAME}`,
+    description: SITE_DESCRIPTION,
+    url: '/',
+    type: 'website',
+  },
 };
 
 export const revalidate = 3600;

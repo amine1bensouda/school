@@ -6,7 +6,10 @@ export interface SeoFaqItem {
   answer: string;
 }
 
-/** Intro 150–220 mots pour éviter le thin content sur les landing quiz. */
+/**
+ * Intro quiz : priorise l'extrait admin ; sinon construit un texte ancré
+ * sur titre + catégorie + snippets de questions réelles (anti-template).
+ */
 export function buildQuizIntro(params: {
   title: string;
   category?: string;
@@ -14,6 +17,8 @@ export function buildQuizIntro(params: {
   questionCount?: number;
   durationMinutes?: number;
   existingExcerptPlain?: string;
+  /** Extraits des premières questions (texte brut) pour différencier chaque landing */
+  questionSnippets?: string[];
 }): string {
   const title = params.title.trim();
   const category = params.category ? categoryToEnglish(params.category) : '';
@@ -27,77 +32,95 @@ export function buildQuizIntro(params: {
       : null;
 
   const existing = (params.existingExcerptPlain || '').trim();
-  // Si l'extrait admin est déjà assez long, on le garde tel quel côté rendu HTML.
-  if (existing.length >= 280) {
-    return '';
+  if (existing.length >= 160) {
+    return existing.length >= 280 ? '' : existing;
   }
+
+  const snippets = (params.questionSnippets || [])
+    .map((s) => s.replace(/\s+/g, ' ').trim())
+    .filter((s) => s.length > 20)
+    .slice(0, 3)
+    .map((s) => (s.length > 110 ? `${s.slice(0, 107)}…` : s));
 
   const parts: string[] = [];
   parts.push(
-    `This free ${title} practice quiz from ${SITE_NAME} helps you build exam-ready math skills with clear scoring and step-by-step review.`
+    `Practice ${title} on ${SITE_NAME}${category ? ` (${category})` : ''}${
+      qCount ? ` with ${qCount} scored questions` : ''
+    }${duration ? ` in about ${duration}` : ''}${
+      difficulty && difficulty !== 'Intermediate' ? ` at ${difficulty} level` : ''
+    }.`
   );
 
-  if (category) {
+  if (snippets.length > 0) {
     parts.push(
-      `It is designed for ${category} learners who want targeted practice before test day.`
+      `This set covers problems such as: ${snippets.map((s) => `“${s}”`).join('; ')}.`
     );
-  } else {
+  } else if (category) {
     parts.push(
-      `It is designed for students preparing for standardized math exams who want focused, timed practice.`
+      `Use it to strengthen ${category} skills with exam-style timing, clear scoring, and review after each attempt.`
     );
-  }
-
-  if (qCount || duration || difficulty) {
-    const bits: string[] = [];
-    if (qCount) bits.push(`${qCount} questions`);
-    if (duration) bits.push(`about ${duration}`);
-    if (difficulty && difficulty !== 'Intermediate') bits.push(`${difficulty} difficulty`);
-    parts.push(`Expect ${bits.join(', ')}.`);
   }
 
   parts.push(
-    `Work through each problem carefully, then use the answer explanations to understand mistakes and strengthen weak topics. Retake the quiz after reviewing to track improvement and build confidence under exam conditions.`
+    `Work carefully, check explanations for misses, then retake to track improvement before test day.`
   );
 
   return parts.join(' ');
 }
 
+/**
+ * FAQ : uniquement des faits spécifiques au quiz (évite 4 FAQ identiques × N landings).
+ * Pas de FAQPage schema si la liste est vide.
+ */
 export function buildQuizFaqs(params: {
   title: string;
   category?: string;
   questionCount?: number;
+  durationMinutes?: number;
   minimumScore?: number;
+  hasEditorialExcerpt?: boolean;
 }): SeoFaqItem[] {
   const title = params.title.trim();
-  const category = params.category ? categoryToEnglish(params.category) : 'math exams';
+  const category = params.category ? categoryToEnglish(params.category) : '';
   const qCount = params.questionCount && params.questionCount > 0 ? params.questionCount : null;
+  const duration =
+    params.durationMinutes && params.durationMinutes > 0
+      ? formatDuration(params.durationMinutes)
+      : null;
   const minScore = params.minimumScore ?? 70;
 
-  return [
-    {
-      question: `Is the ${title} quiz free?`,
-      answer: `Yes. ${SITE_NAME} provides this quiz and most practice tools free of charge. You can start without a paid subscription.`,
-    },
-    {
-      question: 'How does scoring work?',
-      answer: `Your score is the percentage of correct answers. A passing score is typically ${minScore}%. After you finish, you can review each question with detailed explanations.`,
-    },
-    {
-      question: 'Are these official-style questions?',
-      answer: `Questions are written to mirror the style, difficulty, and topics found on major ${category} assessments. They are practice materials, not official exam questions.`,
-    },
-    {
-      question: qCount
-        ? `How many questions are in this quiz?`
-        : 'How should I use this quiz to study?',
-      answer: qCount
-        ? `This quiz includes ${qCount} questions. Complete it in one sitting when possible, then review incorrect answers before retaking.`
-        : `Complete the quiz in one sitting when possible, note the topics you miss, review those concepts, then retake the quiz to measure progress.`,
-    },
-  ];
+  // Sans signal éditorial ni données concrètes → pas de FAQ template
+  if (!params.hasEditorialExcerpt && !qCount && !category) {
+    return [];
+  }
+
+  const faqs: SeoFaqItem[] = [];
+
+  if (qCount) {
+    faqs.push({
+      question: `How many questions are in ${title}?`,
+      answer: `This practice set includes ${qCount} question${qCount === 1 ? '' : 's'}${
+        duration ? ` and takes about ${duration}` : ''
+      }. Finish in one sitting when possible, then review incorrect answers before retaking.`,
+    });
+  }
+
+  if (category) {
+    faqs.push({
+      question: `What topic does ${title} cover?`,
+      answer: `${title} focuses on ${category}. Questions follow exam-style wording and difficulty so you can practice the skills tested on major ${category} assessments. These are practice materials, not official exam questions.`,
+    });
+  }
+
+  faqs.push({
+    question: `How is ${title} scored?`,
+    answer: `Your score is the percentage of correct answers. A typical passing score is ${minScore}%. After you finish, review each miss with the available explanations on ${SITE_NAME}.`,
+  });
+
+  return faqs.slice(0, 3);
 }
 
-/** Intro longue pour pages catégorie (objectif ~500+ mots via paragraphes structurés). */
+/** Contenu catégorie : priorise description CMS ; sections plus courtes et ancrées. */
 export function buildCategorySeoContent(params: {
   name: string;
   description?: string | null;
@@ -109,48 +132,32 @@ export function buildCategorySeoContent(params: {
 
   const intro = custom
     ? custom
-    : `${name} practice on ${SITE_NAME} gives students structured math preparation with exam-style quizzes, clear scoring, and detailed answer explanations. Whether you are reviewing fundamentals or sharpening advanced skills, this category organizes courses and quizzes so you can study efficiently and track progress.`;
+    : `${name} practice on ${SITE_NAME} organizes free exam-style quizzes by course so you can target one skill set at a time, score each attempt, and review explanations.`;
 
   const sections = [
     {
-      heading: `What you will practice in ${name}`,
-      body: `Each ${name} course groups related quizzes by topic so you can focus on one skill at a time. Questions emphasize conceptual understanding, multi-step reasoning, and the kinds of traps that appear on timed exams. Use the course list below to choose a module, then complete quizzes in order of increasing difficulty when available.`,
-    },
-    {
-      heading: 'How to study effectively',
-      body: `Start with a diagnostic quiz to identify weak areas. Review explanations carefully—especially for mistakes driven by rushed reading or incomplete algebra. Then retake the same quiz after 24–48 hours. Consistent short sessions (20–40 minutes) usually outperform rare marathon study blocks for math retention.`,
-    },
-    {
-      heading: 'Scoring and progress',
-      body: `Scores are calculated as the percentage of correct answers. Aim to pass each quiz before moving to the next topic. If your score is below the passing threshold, revisit the related lessons or explanations, then try again. Free practice means you can repeat quizzes as often as needed without limits.`,
-    },
-    {
-      heading: `Why ${name} practice matters`,
-      body: `Strong ${name} performance depends on fluency with core procedures and the ability to apply them under time pressure. Targeted quizzes help you convert passive review into active problem solving—the skill that actually improves exam scores.`,
+      heading: `Study ${name} with focused quizzes`,
+      body: `Open a ${name} course below to browse modules and quizzes. Prefer short sessions, review every miss, and move to harder sets only after you pass the current one.`,
     },
   ];
 
   if (courseCount > 0) {
     sections.push({
-      heading: 'Available courses',
-      body: `This category currently includes ${courseCount} course${courseCount === 1 ? '' : 's'}. Browse the cards below to open modules, lessons, and quizzes tailored to ${name}.`,
+      heading: 'Courses in this category',
+      body: `There ${courseCount === 1 ? 'is' : 'are'} currently ${courseCount} course${
+        courseCount === 1 ? '' : 's'
+      } linked to ${name}. Use the cards to open lessons and practice quizzes.`,
     });
   }
 
-  const faqs: SeoFaqItem[] = [
-    {
-      question: `Is ${name} practice free on ${SITE_NAME}?`,
-      answer: `Yes. You can access ${name} courses and quizzes for free and practice as many times as you need.`,
-    },
-    {
-      question: 'Are questions similar to real exams?',
-      answer: `Quizzes are written to reflect the style and difficulty of major standardized math exams. They are practice tools and are not official test materials.`,
-    },
-    {
-      question: 'How should I start if I am a beginner?',
-      answer: `Begin with the first course or the easiest quizzes in the list, review every explanation, then gradually move to harder sets as your accuracy improves.`,
-    },
-  ];
+  const faqs: SeoFaqItem[] = custom
+    ? [
+        {
+          question: `Is ${name} practice free?`,
+          answer: `Yes. ${SITE_NAME} offers free ${name} quizzes you can retake as needed.`,
+        },
+      ]
+    : [];
 
   return { intro, sections, faqs };
 }
@@ -158,10 +165,27 @@ export function buildCategorySeoContent(params: {
 export function buildStudyTip(percentage: number, category?: string): string {
   const topic = category ? categoryToEnglish(category) : 'the topics you missed';
   if (percentage >= 90) {
-    return `Strong result. Keep momentum by attempting a related quiz at the same or slightly higher difficulty, and review any single miss carefully so it does not repeat on exam day.`;
+    return `Strong result. Keep momentum with a related quiz at the same or slightly higher difficulty, and review any single miss carefully.`;
   }
   if (percentage >= 70) {
-    return `You passed. Before the next quiz, spend 15–20 minutes reviewing ${topic}—especially the questions you missed—and retry this set once your accuracy feels steadier.`;
+    return `You passed. Before the next quiz, spend 15–20 minutes reviewing ${topic}—especially the questions you missed—then retry this set.`;
   }
-  return `Based on your score, focus on reviewing ${topic} fundamentals (definitions, formulas, and common setups) before attempting the next quiz. Re-read the explanations for incorrect answers, then retake this quiz to measure improvement.`;
+  return `Focus on ${topic} fundamentals before the next quiz. Re-read explanations for incorrect answers, then retake to measure improvement.`;
+}
+
+/** Snippets texte pour différencier l'intro SEO d'un quiz. */
+export function extractQuestionSnippets(
+  questions: Array<{ texte_question?: string; title?: { rendered?: string } }>,
+  limit = 3
+): string[] {
+  return questions
+    .slice(0, 8)
+    .map((q) =>
+      stripHtml(q.texte_question || q.title?.rendered || '')
+        .replace(/\$+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    )
+    .filter((t) => t.length > 24 && !/^Question\s+\d+$/i.test(t))
+    .slice(0, limit);
 }

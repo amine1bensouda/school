@@ -8,7 +8,7 @@ import NavigationProgress from '@/components/Layout/NavigationProgress';
 import ConditionalLayout from '@/components/Layout/ConditionalLayout';
 import CookieBanner from '@/components/Layout/CookieBanner';
 import SiteSchema from '@/components/SEO/SiteSchema';
-import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
+import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, SITE_HOME_TITLE } from '@/lib/constants';
 import { getAllPublishedPagesData } from '@/lib/cache';
 import type { PracticePageLink } from '@/lib/practice-pages';
 
@@ -16,23 +16,31 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: SITE_NAME,
   title: {
-    default: SITE_NAME,
+    default: `${SITE_HOME_TITLE} | ${SITE_NAME}`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
-  keywords: ['quiz', 'test', 'mathematics', 'math', 'education', 'learning'],
+  keywords: [
+    'math practice',
+    'SAT math quiz',
+    'ACT math practice',
+    'PSAT math',
+    'AP calculus quiz',
+    'free math quizzes',
+    'exam prep',
+  ],
   authors: [{ name: SITE_NAME }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: SITE_NAME,
+    title: `${SITE_HOME_TITLE} | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: 'summary_large_image',
-    title: SITE_NAME,
+    title: `${SITE_HOME_TITLE} | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
   },
   robots: {

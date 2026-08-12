@@ -1,7 +1,10 @@
 // Site constants
 
 export const SITE_NAME = 'The School of Mathematics';
-export const SITE_DESCRIPTION = 'Test your knowledge with our interactive mathematics quizzes';
+export const SITE_DESCRIPTION =
+  'Free exam-style math practice quizzes for SAT, ACT, PSAT, and AP — with scoring, explanations, and structured study paths.';
+export const SITE_HOME_TITLE =
+  'Free Math Practice Quizzes for SAT, ACT, PSAT & AP';
 
 /** Canonical toujours en non-www (évite le split d’autorité www / non-www). */
 function normalizeSiteUrl(url: string): string {

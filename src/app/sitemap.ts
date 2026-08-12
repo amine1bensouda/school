@@ -5,14 +5,29 @@ import { getPublishedCoursesSummaryData, getAllPublishedPagesData } from '@/lib/
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
+async function safeSection<T>(
+  label: string,
+  fn: () => Promise<T>,
+  fallback: T
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    console.error(`Sitemap section "${label}" failed:`, error);
+    return fallback;
+  }
+}
+
+/**
+ * Sitemap résilient : chaque section est isolée.
+ * Une panne DB partielle ne doit jamais renvoyer HTTP 500 (Google perdrait le crawl).
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;
   const currentDate = new Date();
-  const blogPosts = await getAllBlogPostsFromDB();
-  const hasBlogPosts = blogPosts.length > 0;
 
-  // Pages statiques
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -37,6 +52,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/categorie`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/privacy-policy`,
@@ -70,7 +91,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  if (hasBlogPosts) {
+  const blogPosts = await safeSection('blogs', () => getAllBlogPostsFromDB(), []);
+  if (blogPosts.length > 0) {
     staticPages.push({
       url: `${baseUrl}/blogs`,
       lastModified: currentDate,
@@ -79,51 +101,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // Récupérer tous les quiz
-  let quizPages: MetadataRoute.Sitemap = [];
-  try {
-    const quizSlugs = await getAllQuizSlugs();
-    quizPages = quizSlugs.map((slug) => ({
-      url: `${baseUrl}/quiz/${encodeURIComponent(slug)}`,
+  const quizSlugs = await safeSection('quizzes', () => getAllQuizSlugs(), []);
+  const quizPages: MetadataRoute.Sitemap = quizSlugs.map((slug) => ({
+    url: `${baseUrl}/quiz/${encodeURIComponent(slug)}`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  const courses = await safeSection('courses', () => getPublishedCoursesSummaryData(), []);
+  const coursePages: MetadataRoute.Sitemap = courses
+    .filter((course) => course.totalQuizzes > 0)
+    .map((course) => ({
+      url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}`,
       lastModified: currentDate,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));
-  } catch (error) {
-    console.error('Erreur récupération slugs quiz pour sitemap:', error);
-  }
 
-  // Cours publiés avec au moins un quiz indexable
-  let coursePages: MetadataRoute.Sitemap = [];
-  try {
-    const courses = await getPublishedCoursesSummaryData();
-    coursePages = courses
-      .filter((course) => course.totalQuizzes > 0)
-      .map((course) => ({
-        url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}`,
-        lastModified: currentDate,
-        changeFrequency: 'weekly' as const,
-        priority: 0.8,
-      }));
-  } catch (error) {
-    console.error('Erreur récupération cours pour sitemap:', error);
-  }
+  const categorySlugs = await safeSection(
+    'categories',
+    () => getIndexableCategorySlugs(),
+    []
+  );
+  const categoryPages: MetadataRoute.Sitemap = categorySlugs.map((slug) => ({
+    url: `${baseUrl}/categorie/${encodeURIComponent(slug)}`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
 
-  // Catégories uniques avec quiz indexables
-  let categoryPages: MetadataRoute.Sitemap = [];
-  try {
-    const categorySlugs = await getIndexableCategorySlugs();
-    categoryPages = categorySlugs.map((slug) => ({
-      url: `${baseUrl}/categorie/${encodeURIComponent(slug)}`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }));
-  } catch (error) {
-    console.error('Erreur récupération catégories pour sitemap:', error);
-  }
-
-  // Pages d'articles de blog
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
     lastModified: post.date ? new Date(post.date) : currentDate,
@@ -131,23 +138,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Pages custom publiées (HTML/CSS depuis le panel admin), indexables uniquement
-  let customPages: MetadataRoute.Sitemap = [];
-  try {
-    const pages = await getAllPublishedPagesData();
-    customPages = pages
-      .filter((p) => !p.noIndex)
-      .map((p) => ({
-        url: `${baseUrl}/pages/${encodeURIComponent(p.slug)}`,
-        lastModified: p.updatedAt ? new Date(p.updatedAt) : currentDate,
-        changeFrequency: 'monthly' as const,
-        priority: 0.6,
-      }));
-  } catch (error) {
-    console.error('Erreur récupération pages custom pour sitemap:', error);
-  }
+  const pages = await safeSection('custom-pages', () => getAllPublishedPagesData(), []);
+  const customPages: MetadataRoute.Sitemap = pages
+    .filter((p) => !p.noIndex)
+    .map((p) => ({
+      url: `${baseUrl}/pages/${encodeURIComponent(p.slug)}`,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : currentDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }));
 
-  // Combiner toutes les pages
   return [
     ...staticPages,
     ...quizPages,

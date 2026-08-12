@@ -5,7 +5,9 @@ import { getBlogPostFromDB } from '@/lib/blog-data';
 import CommentsSection from '@/components/Comments/CommentsSection';
 import { extractEmbeddedCss, sanitizeHtml } from '@/lib/sanitize-html';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
-import { SITE_NAME } from '@/lib/constants';
+import { SITE_NAME, SITE_URL } from '@/lib/constants';
+import ArticleSchema from '@/components/SEO/ArticleSchema';
+import { stripHtml } from '@/lib/utils';
 
 export const revalidate = 900;
 
@@ -30,6 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: 'article',
+      url: `${SITE_URL}${canonical}`,
     },
   };
 }
@@ -54,6 +57,16 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      <ArticleSchema
+        title={post.title}
+        description={
+          resolveSeoDescription(post.metaDescription, post.excerpt) ||
+          stripHtml(post.excerpt || '').slice(0, 160)
+        }
+        slug={post.slug}
+        datePublished={post.date}
+        category={post.category}
+      />
       {embeddedCss && (
         <style dangerouslySetInnerHTML={{ __html: embeddedCss }} />
       )}

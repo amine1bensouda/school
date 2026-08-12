@@ -102,7 +102,7 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <div>
       <BreadcrumbSchema items={breadcrumbItems} />
-      <FaqSchema items={seo.faqs} />
+      {seo.faqs.length > 0 && <FaqSchema items={seo.faqs} />}
       <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-10 animate-fade-in max-w-4xl">
@@ -150,17 +150,19 @@ export default async function CategoryPage({ params }: PageProps) {
           ))}
         </section>
 
-        <section className="max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 md:p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently asked questions</h2>
-          <div className="space-y-5">
-            {seo.faqs.map((item) => (
-              <div key={item.question}>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.question}</h3>
-                <p className="text-gray-700 leading-relaxed">{item.answer}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        {seo.faqs.length > 0 && (
+          <section className="max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 md:p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently asked questions</h2>
+            <div className="space-y-5">
+              {seo.faqs.map((item) => (
+                <div key={item.question}>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.question}</h3>
+                  <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

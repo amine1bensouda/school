@@ -136,6 +136,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  // Legacy FR about URL → canonical English about
+  if (pathname === '/a-propos' || pathname === '/a-propos/') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/about-us';
+    return NextResponse.redirect(url, 301);
+  }
+
   // Protection auth: bloquer les accès non-authentifiés aux routes /api/admin/*
   // sauf l'endpoint de login.
   if (isAdminApiRequest(pathname) && !isPublicAdminApi(pathname)) {
