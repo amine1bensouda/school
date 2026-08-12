@@ -1,21 +1,11 @@
 import type { Quiz } from '@/lib/types';
 import { questionPlainTextForSeo } from '@/lib/seo-questions';
 
-/**
- * Questions en HTML serveur (SSR) — texte réel dans le HTML initial.
- * Composant serveur (pas de 'use client') : Googlebot/Gemini voient tout sans exécuter JS.
- * Masqué visuellement (sr-only) pour ne pas dupliquer le quiz interactif.
- */
-export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
+function QuizQuestionsList({ quiz }: { quiz: Quiz }) {
   const questions = quiz.acf?.questions || [];
-  if (questions.length === 0) return null;
 
   return (
-    <section
-      aria-label="Quiz questions for search engines"
-      className="sr-only"
-      data-seo-quiz-questions="true"
-    >
+    <>
       <h2>Questions in this quiz ({questions.length})</h2>
       <ol>
         {questions.map((question, index) => {
@@ -43,6 +33,33 @@ export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
           );
         })}
       </ol>
-    </section>
+    </>
+  );
+}
+
+/**
+ * Questions injectées dans le HTML serveur (SSR) — pas de fetch client.
+ * - sr-only : crawlable / accessible, sans doublon visuel
+ * - noscript : fallback pour les fetchers qui n’exécutent pas JS
+ */
+export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
+  const questions = quiz.acf?.questions || [];
+  if (questions.length === 0) return null;
+
+  return (
+    <>
+      <section
+        aria-label="Quiz questions for search engines"
+        className="sr-only"
+        data-seo-quiz-questions="true"
+      >
+        <QuizQuestionsList quiz={quiz} />
+      </section>
+      <noscript>
+        <section aria-label="Quiz questions">
+          <QuizQuestionsList quiz={quiz} />
+        </section>
+      </noscript>
+    </>
   );
 }
