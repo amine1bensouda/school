@@ -143,6 +143,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  // Anciennes pages catégories (thin / hub inutile) → liste des examens
+  if (pathname === '/categorie' || pathname.startsWith('/categorie/')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/quiz';
+    return NextResponse.redirect(url, 301);
+  }
+
   // Protection auth: bloquer les accès non-authentifiés aux routes /api/admin/*
   // sauf l'endpoint de login.
   if (isAdminApiRequest(pathname) && !isPublicAdminApi(pathname)) {

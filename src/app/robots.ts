@@ -12,6 +12,8 @@ export default function robots(): MetadataRoute.Robots {
     '/dashboard/',
     '/login',
     '/register',
+    '/categorie',
+    '/categorie/',
     '/quiz/*/correction',
     '/quiz/*/results',
   ];
@@ -20,12 +22,12 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: 'AdsBot-Google',
-        allow: ['/', '/quiz', '/quiz/', '/pages/', '/categorie/', '/blogs/'],
+        allow: ['/', '/quiz', '/quiz/', '/pages/', '/blogs/'],
         disallow: disallowPrivate,
       },
       {
         userAgent: 'AdsBot-Google-Mobile',
-        allow: ['/', '/quiz', '/quiz/', '/pages/', '/categorie/', '/blogs/'],
+        allow: ['/', '/quiz', '/quiz/', '/pages/', '/blogs/'],
         disallow: disallowPrivate,
       },
       // Gemini Apps / grounding (token robots, pas un crawler HTTP séparé)

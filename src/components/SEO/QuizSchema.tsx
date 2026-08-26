@@ -3,48 +3,23 @@ import { SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
 import { safeJsonLd } from '@/lib/sanitize-html';
 import { buildQuizPublicTitle } from '@/lib/seo-meta';
-import { questionPlainTextForSeo } from '@/lib/seo-questions';
 
 interface QuizSchemaProps {
   quiz: Quiz;
 }
 
+/**
+ * Schema Quiz allégé : métadonnées uniquement.
+ * Les énoncés ne sont pas dupliqués ici (déjà dans QuizQuestionsSeoContent).
+ */
 export default function QuizSchema({ quiz }: QuizSchemaProps) {
-  const questions = quiz.acf?.questions || [];
-  const questionCount = questions.length;
+  const questionCount = quiz.acf?.questions?.length || 0;
   const title = buildQuizPublicTitle({
     title: stripHtml(quiz.title.rendered),
     category: quiz.acf?.categorie,
     slug: quiz.slug,
   });
   const description = stripHtml(quiz.excerpt?.rendered || quiz.content?.rendered || '');
-
-  const hasPart = questions.map((question, index) => {
-    const raw =
-      question.texte_question ||
-      question.title?.rendered ||
-      question.content?.rendered ||
-      `Question ${index + 1}`;
-    const text = questionPlainTextForSeo(raw, `Question ${index + 1}`);
-    const answers = question.reponses || question.acf?.reponses || [];
-    const suggestedAnswers = answers
-      .map((answer) => questionPlainTextForSeo(answer.texte, ''))
-      .filter(Boolean)
-      .map((answerText) => ({
-        '@type': 'Answer',
-        text: answerText,
-      }));
-
-    return {
-      '@type': 'Question',
-      name: text,
-      text,
-      position: index + 1,
-      ...(suggestedAnswers.length > 0 && {
-        suggestedAnswer: suggestedAnswers,
-      }),
-    };
-  });
 
   const schema = {
     '@context': 'https://schema.org',
@@ -69,7 +44,6 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
         name: quiz.acf.categorie,
       },
     }),
-    ...(hasPart.length > 0 && { hasPart }),
   };
 
   return (

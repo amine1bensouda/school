@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
-import { getAllQuizSlugs, getIndexableCategorySlugs } from '@/lib/quiz-service';
+import { getAllQuizSlugs } from '@/lib/quiz-service';
 import { getPublishedCoursesSummaryData, getAllPublishedPagesData } from '@/lib/cache';
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 
@@ -52,12 +52,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/categorie`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
     },
     {
       url: `${baseUrl}/privacy-policy`,
@@ -119,18 +113,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-  const categorySlugs = await safeSection(
-    'categories',
-    () => getIndexableCategorySlugs(),
-    []
-  );
-  const categoryPages: MetadataRoute.Sitemap = categorySlugs.map((slug) => ({
-    url: `${baseUrl}/categorie/${encodeURIComponent(slug)}`,
-    lastModified: currentDate,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
-
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
     lastModified: post.date ? new Date(post.date) : currentDate,
@@ -152,7 +134,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticPages,
     ...quizPages,
     ...coursePages,
-    ...categoryPages,
     ...blogPages,
     ...customPages,
   ];

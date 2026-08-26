@@ -1,11 +1,20 @@
 import type { Quiz } from '@/lib/types';
 import { questionPlainTextForSeo } from '@/lib/seo-questions';
 
-function QuizQuestionsList({ quiz }: { quiz: Quiz }) {
+/**
+ * Une seule copie texte des questions dans le HTML serveur (SSR).
+ * sr-only : crawlable sans doublon visuel. Pas de noscript (évite la double injection).
+ */
+export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
   const questions = quiz.acf?.questions || [];
+  if (questions.length === 0) return null;
 
   return (
-    <>
+    <section
+      aria-label="Quiz questions for search engines"
+      className="sr-only"
+      data-seo-quiz-questions="true"
+    >
       <h2>Questions in this quiz ({questions.length})</h2>
       <ol>
         {questions.map((question, index) => {
@@ -33,33 +42,6 @@ function QuizQuestionsList({ quiz }: { quiz: Quiz }) {
           );
         })}
       </ol>
-    </>
-  );
-}
-
-/**
- * Questions injectées dans le HTML serveur (SSR) — pas de fetch client.
- * - sr-only : crawlable / accessible, sans doublon visuel
- * - noscript : fallback pour les fetchers qui n’exécutent pas JS
- */
-export default function QuizQuestionsSeoContent({ quiz }: { quiz: Quiz }) {
-  const questions = quiz.acf?.questions || [];
-  if (questions.length === 0) return null;
-
-  return (
-    <>
-      <section
-        aria-label="Quiz questions for search engines"
-        className="sr-only"
-        data-seo-quiz-questions="true"
-      >
-        <QuizQuestionsList quiz={quiz} />
-      </section>
-      <noscript>
-        <section aria-label="Quiz questions">
-          <QuizQuestionsList quiz={quiz} />
-        </section>
-      </noscript>
-    </>
+    </section>
   );
 }

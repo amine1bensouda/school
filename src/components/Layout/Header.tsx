@@ -103,19 +103,6 @@ export default function Header({
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
               )}
             </Link>
-            <Link
-              href="/categorie"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                pathname === '/categorie' || pathname?.startsWith('/categorie/')
-                  ? 'bg-gray-100 rounded-lg'
-                  : 'hover:text-gray-900'
-              }`}
-            >
-              Courses
-              {(pathname === '/categorie' || pathname?.startsWith('/categorie/')) && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
-              )}
-            </Link>
             {practicePages.length > 0 && (
               <div className="relative">
                 <button
@@ -328,17 +315,6 @@ export default function Header({
                 }`}
               >
                 Exams
-              </Link>
-              <Link
-                href="/categorie"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  pathname === '/categorie' || pathname?.startsWith('/categorie/')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                Courses
               </Link>
               {practicePages.length > 0 && (
                 <div>

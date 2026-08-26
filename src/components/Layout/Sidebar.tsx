@@ -18,7 +18,7 @@ export default function Sidebar({ categories = [] }: SidebarProps) {
               {categories.map((category) => (
                 <li key={category.id}>
                   <Link
-                    href={`/categorie/${category.slug}`}
+                    href="/quiz"
                     className="flex items-center justify-between text-gray-700 hover:text-primary-600 transition-colors py-2"
                   >
                     <span>{category.name}</span>
