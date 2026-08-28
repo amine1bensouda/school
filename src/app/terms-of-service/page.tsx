@@ -1,9 +1,10 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: `Terms of Service for ${SITE_NAME} - Read our terms and conditions for using our platform`,
+  description: `Terms of Service for ${SITE_NAME} — terms and conditions for using our educational website.`,
   alternates: { canonical: '/terms-of-service' },
 };
 
@@ -11,138 +12,244 @@ export default function TermsOfServicePage() {
   return (
     <div className="bg-gradient-to-b from-white via-gray-50 to-white">
       <div className="container mx-auto px-4 py-12 md:py-20 max-w-4xl">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">Terms of Service</h1>
-        
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+          Terms of Service
+        </h1>
+
         <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
           <p className="text-sm text-gray-500 mb-8">
-            Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>Last updated: August 28, 2026</strong>
+          </p>
+
+          <p>
+            Welcome to <strong>{SITE_NAME}</strong>.
+          </p>
+
+          <p>
+            By accessing or using{' '}
+            <a href={SITE_URL} className="text-gray-900 underline">
+              {SITE_URL}
+            </a>{' '}
+            (the &ldquo;Website&rdquo;), you agree to comply with these Terms of Service. If you
+            do not agree with these terms, please do not use the Website.
           </p>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">1. Agreement to Terms</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              1. Purpose of the Website
+            </h2>
             <p>
-              By accessing or using {SITE_NAME} ({SITE_URL}), you agree to be bound by these Terms of Service and all 
-              applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from 
-              using or accessing this website.
+              {SITE_NAME} provides free educational mathematics resources, including practice
+              quizzes, exam-style questions, explanations, study materials, and related
+              educational content.
+            </p>
+            <p className="mt-4">
+              The Website is intended for educational and informational purposes.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">2. Use License</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              2. Educational Use
+            </h2>
             <p>
-              Permission is granted to temporarily access and use {SITE_NAME} for personal, non-commercial transitory 
-              viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+              Our quizzes and practice materials are designed to help learners practice
+              mathematical concepts and prepare for standardized mathematics assessments.
             </p>
+            <p className="mt-4">
+              Unless specifically stated otherwise, our questions are{' '}
+              <strong>
+                original practice questions inspired by common mathematical topics and exam
+                formats
+              </strong>
+              . They should not be considered official examination questions.
+            </p>
+            <p className="mt-4">
+              {SITE_NAME} is an independent educational website and is not affiliated with,
+              endorsed by, or sponsored by the College Board, ACT, Inc., or any other
+              examination organization unless explicitly stated.
+            </p>
+            <p className="mt-4">
+              Names of examinations, organizations, and educational programs may be used for
+              identification and informational purposes only.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              3. Use of the Website
+            </h2>
+            <p>
+              You may use the Website for lawful personal, educational, and non-commercial
+              learning purposes.
+            </p>
+            <p className="mt-4">You agree not to:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Modify or copy the materials</li>
-              <li>Use the materials for any commercial purpose or for any public display</li>
-              <li>Attempt to reverse engineer any software contained on the website</li>
-              <li>Remove any copyright or other proprietary notations from the materials</li>
-              <li>Transfer the materials to another person or "mirror" the materials on any other server</li>
+              <li>Use the Website for unlawful purposes.</li>
+              <li>Attempt to interfere with or disrupt the Website.</li>
+              <li>Attempt to gain unauthorized access to systems or data.</li>
+              <li>
+                Copy, reproduce, redistribute, or commercially exploit substantial portions of
+                our content without permission.
+              </li>
+              <li>
+                Use automated methods to excessively access or scrape the Website in a manner
+                that negatively affects its operation.
+              </li>
+              <li>
+                Circumvent security, access controls, or other technical protections.
+              </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">3. User Accounts</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              4. Intellectual Property
+            </h2>
             <p>
-              When you create an account with us, you must provide information that is accurate, complete, and current at all times. 
-              You are responsible for safeguarding the password and for all activities that occur under your account.
+              Unless otherwise stated, the Website and its original content, including text,
+              questions, explanations, graphics, designs, logos, and other materials, are owned
+              by or licensed to {SITE_NAME}.
             </p>
             <p className="mt-4">
-              You agree not to disclose your password to any third party and to take sole responsibility for any activities 
-              or actions under your account, whether or not you have authorized such activities or actions.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">4. Acceptable Use</h2>
-            <p>You agree not to use the website:</p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>In any way that violates any applicable national or international law or regulation</li>
-              <li>To transmit, or procure the sending of, any advertising or promotional material without our prior written consent</li>
-              <li>To impersonate or attempt to impersonate the company, a company employee, another user, or any other person or entity</li>
-              <li>In any way that infringes upon the rights of others, or in any way is illegal, threatening, fraudulent, or harmful</li>
-              <li>To engage in any other conduct that restricts or inhibits anyone's use or enjoyment of the website</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">5. Intellectual Property</h2>
-            <p>
-              The website and its original content, features, and functionality are owned by {SITE_NAME} and are protected 
-              by international copyright, trademark, patent, trade secret, and other intellectual property laws.
+              You may access and use the content for personal educational purposes.
             </p>
             <p className="mt-4">
-              You may not reproduce, distribute, modify, create derivative works of, publicly display, publicly perform, 
-              republish, download, store, or transmit any of the material on our website without our prior written consent.
+              You may not reproduce, republish, distribute, modify, sell, or commercially
+              exploit substantial portions of the Website&apos;s content without prior written
+              permission.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">6. Quiz Content and Results</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              5. Accuracy of Educational Content
+            </h2>
             <p>
-              All quiz content, questions, answers, and explanations are provided for educational purposes only. While we 
-              strive for accuracy, we do not guarantee that all content is error-free or up-to-date.
+              We make reasonable efforts to provide accurate and useful educational content.
             </p>
             <p className="mt-4">
-              Quiz results are provided for informational purposes and should not be considered as official assessments 
-              or certifications unless explicitly stated otherwise.
+              However, mathematical content, explanations, examples, and practice questions may
+              occasionally contain errors or omissions.
+            </p>
+            <p className="mt-4">
+              The Website is provided for educational practice and should not be considered a
+              substitute for official examination materials, professional educational advice,
+              or instructions issued by an examination organization.
+            </p>
+            <p className="mt-4">
+              If you identify a possible error, please contact us so that we can review and
+              correct it when appropriate.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">7. Disclaimer</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              6. No Guarantee of Examination Results
+            </h2>
             <p>
-              The materials on {SITE_NAME} are provided on an 'as is' basis. {SITE_NAME} makes no warranties, expressed 
-              or implied, and hereby disclaims and negates all other warranties including, without limitation, implied 
-              warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of 
-              intellectual property or other violation of rights.
+              Using our quizzes or educational resources does not guarantee any particular
+              examination score, academic result, admission decision, or other outcome.
+            </p>
+            <p className="mt-4">
+              Students should also consult official examination materials and requirements when
+              preparing for an examination.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">8. Limitations</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              7. Third-Party Links and Services
+            </h2>
             <p>
-              In no event shall {SITE_NAME} or its suppliers be liable for any damages (including, without limitation, 
-              damages for loss of data or profit, or due to business interruption) arising out of the use or inability 
-              to use the materials on {SITE_NAME}, even if {SITE_NAME} or an authorized representative has been notified 
-              orally or in writing of the possibility of such damage.
+              The Website may contain links to third-party websites or services.
+            </p>
+            <p className="mt-4">
+              These links are provided for convenience or informational purposes. We do not
+              control third-party websites and are not responsible for their content,
+              availability, privacy practices, or terms.
+            </p>
+            <p className="mt-4">
+              Your use of third-party services is subject to the terms and policies of those
+              third parties.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">9. Links to Other Websites</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">8. Advertising</h2>
             <p>
-              Our website may contain links to third-party websites or services that are not owned or controlled by {SITE_NAME}. 
-              We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any 
-              third-party websites or services.
+              The Website may display advertisements provided by third-party advertising
+              services, including Google and other advertising partners.
+            </p>
+            <p className="mt-4">
+              Advertising helps support the operation and development of the Website.
+            </p>
+            <p className="mt-4">
+              Advertisements are provided by third parties, and {SITE_NAME} does not necessarily
+              endorse the products or services shown in advertisements.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">10. Termination</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              9. Website Availability
+            </h2>
             <p>
-              We may terminate or suspend your account and bar access to the website immediately, without prior notice or 
-              liability, for any reason whatsoever, including without limitation if you breach the Terms.
+              We aim to keep the Website available and functional, but we do not guarantee
+              uninterrupted or error-free access.
+            </p>
+            <p className="mt-4">
+              We may modify, suspend, or discontinue any part of the Website, including
+              individual quizzes or features, at any time.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">11. Changes to Terms</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              10. Limitation of Liability
+            </h2>
             <p>
-              We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is 
-              material, we will provide at least 30 days notice prior to any new terms taking effect.
+              To the extent permitted by applicable law, {SITE_NAME} shall not be liable for
+              indirect, incidental, consequential, or other losses arising from the use of, or
+              inability to use, the Website or its educational content.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">12. Contact Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              11. Changes to These Terms
+            </h2>
+            <p>We may update these Terms of Service from time to time.</p>
+            <p className="mt-4">
+              When changes are made, the updated version will be published on this page with a
+              new &ldquo;Last updated&rdquo; date.
+            </p>
+            <p className="mt-4">
+              Your continued use of the Website after changes are published constitutes
+              acceptance of the updated terms, to the extent permitted by applicable law.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">12. Contact</h2>
             <p>
-              If you have any questions about these Terms of Service, please contact us:
+              If you have questions regarding these Terms of Service, please contact us through
+              our{' '}
+              <Link href="/contact-us" className="text-gray-900 underline">
+                Contact page
+              </Link>
+              .
             </p>
             <div className="mt-4 space-y-2">
-              <p><strong>Email:</strong> <a href="mailto:contact@schoolofmathematics.com" className="text-gray-900 underline">contact@schoolofmathematics.com</a></p>
-              <p><strong>Support:</strong> <a href="mailto:support@schoolofmathematics.com" className="text-gray-900 underline">support@schoolofmathematics.com</a></p>
+              <p>
+                <strong>{SITE_NAME}</strong>
+              </p>
+              <p>
+                Website:{' '}
+                <a href={SITE_URL} className="text-gray-900 underline">
+                  {SITE_URL}
+                </a>
+              </p>
             </div>
           </section>
         </div>
@@ -150,4 +257,3 @@ export default function TermsOfServicePage() {
     </div>
   );
 }
-

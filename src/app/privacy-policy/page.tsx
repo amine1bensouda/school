@@ -1,9 +1,10 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: `Privacy Policy for ${SITE_NAME} - Learn how we collect, use, and protect your personal information`,
+  description: `Privacy Policy for ${SITE_NAME} — how we collect, use, and protect your information.`,
   alternates: { canonical: '/privacy-policy' },
 };
 
@@ -11,134 +12,268 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="bg-gradient-to-b from-white via-gray-50 to-white">
       <div className="container mx-auto px-4 py-12 md:py-20 max-w-4xl">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
-        
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+          Privacy Policy
+        </h1>
+
         <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
           <p className="text-sm text-gray-500 mb-8">
-            Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>Last updated: August 28, 2026</strong>
+          </p>
+
+          <p>
+            At <strong>{SITE_NAME}</strong> (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or
+            &ldquo;the Website&rdquo;), we respect your privacy and are committed to
+            protecting your personal information.
+          </p>
+
+          <p>
+            This Privacy Policy explains what information we may collect, how we use
+            it, how cookies and advertising technologies may be used, and the choices
+            available to you when using{' '}
+            <a href={SITE_URL} className="text-gray-900 underline">
+              {SITE_URL}
+            </a>
+            .
           </p>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">1. Introduction</h2>
-            <p>
-              Welcome to {SITE_NAME} ({SITE_URL}). We are committed to protecting your personal information and your right to privacy. 
-              This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">2. Information We Collect</h2>
-            <h3 className="text-xl font-semibold text-gray-900 mt-6 mb-3">2.1 Information You Provide</h3>
-            <p>We may collect information that you voluntarily provide to us when you:</p>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              1. Information We Collect
+            </h2>
+            <p>Depending on how you use the Website, we may collect limited information such as:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Register for an account</li>
-              <li>Complete quizzes or assessments</li>
-              <li>Contact us through our contact form</li>
-              <li>Subscribe to our newsletter</li>
-              <li>Participate in surveys or promotions</li>
-            </ul>
-            <p className="mt-4">This information may include your name, email address, and any other information you choose to provide.</p>
-
-            <h3 className="text-xl font-semibold text-gray-900 mt-6 mb-3">2.2 Automatically Collected Information</h3>
-            <p>When you visit our website, we may automatically collect certain information about your device, including:</p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>IP address</li>
-              <li>Browser type and version</li>
-              <li>Operating system</li>
-              <li>Pages you visit and time spent on pages</li>
-              <li>Referring website addresses</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">3. How We Use Your Information</h2>
-            <p>We use the information we collect to:</p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Provide, maintain, and improve our services</li>
-              <li>Process your quiz results and track your progress</li>
-              <li>Send you updates, newsletters, and promotional materials (with your consent)</li>
-              <li>Respond to your inquiries and provide customer support</li>
-              <li>Detect, prevent, and address technical issues</li>
-              <li>Comply with legal obligations</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">4. Cookies and Tracking Technologies</h2>
-            <p>
-              We use cookies and similar tracking technologies to track activity on our website and store certain information. 
-              Cookies are files with a small amount of data that may include an anonymous unique identifier.
-            </p>
-            <p className="mt-4">
-              You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, 
-              if you do not accept cookies, you may not be able to use some portions of our website.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">5. Third-Party Services</h2>
-            <p>
-              We may use third-party services, including Google Analytics and Google AdSense, to help us analyze how our website 
-              is used and to display advertisements. These third parties may use cookies and similar technologies to collect 
-              information about your use of our website.
-            </p>
-            <p className="mt-4">
-              For more information about how Google uses data, please visit: 
-              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-gray-900 underline ml-1">
-                Google Privacy Policy
-              </a>
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">6. Data Security</h2>
-            <p>
-              We implement appropriate technical and organizational security measures to protect your personal information. 
-              However, no method of transmission over the Internet or electronic storage is 100% secure, and we cannot 
-              guarantee absolute security.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">7. Your Rights</h2>
-            <p>Depending on your location, you may have the following rights regarding your personal information:</p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>The right to access your personal information</li>
-              <li>The right to correct inaccurate information</li>
-              <li>The right to delete your personal information</li>
-              <li>The right to object to processing of your information</li>
-              <li>The right to data portability</li>
+              <li>
+                Information you voluntarily provide through contact forms or other forms
+                on the Website.
+              </li>
+              <li>Information related to your use of quizzes and educational content.</li>
+              <li>
+                Technical information such as IP address, browser type, device type,
+                operating system, referring pages, and approximate location.
+              </li>
+              <li>
+                Usage information, such as pages visited, interactions with the Website,
+                and general website performance data.
+              </li>
             </ul>
             <p className="mt-4">
-              To exercise these rights, please contact us at: <a href="mailto:contact@schoolofmathematics.com" className="text-gray-900 underline">contact@schoolofmathematics.com</a>
+              We do not require users to create an account in order to access the majority
+              of our educational content.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">8. Children's Privacy</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              2. How We Use Information
+            </h2>
+            <p>We may use information to:</p>
+            <ul className="list-disc list-inside space-y-2 ml-4">
+              <li>Provide and improve our educational content and quizzes.</li>
+              <li>Operate, maintain, and secure the Website.</li>
+              <li>Respond to questions and requests.</li>
+              <li>Understand how visitors use the Website.</li>
+              <li>Detect and prevent abuse, fraud, and security issues.</li>
+              <li>Measure website performance and improve the user experience.</li>
+              <li>Display advertising where applicable and where permitted by law.</li>
+            </ul>
+            <p className="mt-4">We do not sell users&apos; personal information.</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              3. Cookies and Similar Technologies
+            </h2>
             <p>
-              Our website is not intended for children under the age of 13. We do not knowingly collect personal information 
-              from children under 13. If you are a parent or guardian and believe your child has provided us with personal 
-              information, please contact us immediately.
+              The Website may use cookies and similar technologies for essential
+              functionality, analytics, security, preferences, and advertising.
+            </p>
+            <p className="mt-4">
+              Essential cookies may be required for the Website to function properly.
+            </p>
+            <p className="mt-4">
+              Where required by applicable law, non-essential cookies and similar
+              technologies will only be used after obtaining the appropriate user consent.
+            </p>
+            <p className="mt-4">
+              You can manage your cookie preferences through the cookie consent mechanism
+              available on the Website and, depending on your browser, through your browser
+              settings.
+            </p>
+            <p className="mt-4">
+              For more information, please see our{' '}
+              <Link href="/cookie-policy" className="text-gray-900 underline">
+                Cookie Policy
+              </Link>
+              .
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">9. Changes to This Privacy Policy</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              4. Google Advertising
+            </h2>
             <p>
-              We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new 
-              Privacy Policy on this page and updating the "Last updated" date.
+              We may use Google and other third-party advertising providers to display
+              advertisements on the Website.
+            </p>
+            <p className="mt-4">
+              These providers may use cookies or similar technologies to provide, measure,
+              and personalize advertising, subject to applicable laws and the choices and
+              consent provided by users where required.
+            </p>
+            <p className="mt-4">
+              Google may use information collected through its advertising technologies in
+              accordance with its applicable policies.
+            </p>
+            <p className="mt-4">
+              Users can learn more about how Google uses information in advertising through
+              Google&apos;s privacy resources and can manage available advertising preferences
+              through their Google account or Google&apos;s advertising settings.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">10. Contact Us</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">5. Analytics</h2>
             <p>
-              If you have any questions about this Privacy Policy, please contact us:
+              We may use analytics services to understand how visitors interact with the
+              Website and to improve its content, functionality, and performance.
+            </p>
+            <p className="mt-4">
+              Analytics technologies may collect information such as pages viewed, approximate
+              location, device information, browser information, and interactions with the
+              Website.
+            </p>
+            <p className="mt-4">
+              Where required by applicable law, the use of non-essential analytics
+              technologies is subject to user consent.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              6. Educational Content and Children
+            </h2>
+            <p>
+              {SITE_NAME} provides educational mathematics resources for students and other
+              learners.
+            </p>
+            <p className="mt-4">
+              We do not knowingly request or intentionally collect unnecessary personal
+              information from children.
+            </p>
+            <p className="mt-4">
+              The Website is designed primarily to provide educational content and does not
+              require users to provide personal information simply to access our general
+              quizzes and learning materials.
+            </p>
+            <p className="mt-4">
+              If you believe that a child has provided personal information to us
+              unnecessarily, please contact us so that we can review the information and
+              take appropriate action.
+            </p>
+            <p className="mt-4">
+              Parents or guardians who have concerns about personal information relating to
+              a child may contact us using the information provided on our{' '}
+              <Link href="/contact-us" className="text-gray-900 underline">
+                Contact page
+              </Link>
+              .
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              7. Third-Party Services
+            </h2>
+            <p>
+              The Website may contain links to or use services provided by third parties,
+              including advertising, analytics, hosting, security, or other service providers.
+            </p>
+            <p className="mt-4">
+              These third parties may process information according to their own privacy
+              policies.
+            </p>
+            <p className="mt-4">
+              We are not responsible for the privacy practices of third-party websites or
+              services that we do not control.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">8. Data Security</h2>
+            <p>
+              We take reasonable technical and organizational measures to protect information
+              against unauthorized access, loss, misuse, alteration, or disclosure.
+            </p>
+            <p className="mt-4">
+              However, no internet transmission or electronic storage system can be
+              guaranteed to be completely secure.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">9. Data Retention</h2>
+            <p>
+              We retain information only for as long as reasonably necessary for the purposes
+              described in this Privacy Policy, to provide our services, comply with legal
+              obligations, resolve disputes, and enforce our agreements.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              10. Your Privacy Rights
+            </h2>
+            <p>
+              Depending on your location and applicable law, you may have rights concerning
+              your personal information, including rights to access, correct, delete, restrict,
+              or object to certain processing.
+            </p>
+            <p className="mt-4">
+              To exercise an applicable privacy right or ask a privacy-related question,
+              please contact us through our{' '}
+              <Link href="/contact-us" className="text-gray-900 underline">
+                Contact page
+              </Link>
+              .
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">
+              11. Changes to This Privacy Policy
+            </h2>
+            <p>
+              We may update this Privacy Policy from time to time to reflect changes in our
+              Website, services, technologies, or legal requirements.
+            </p>
+            <p className="mt-4">
+              Any changes will be published on this page with an updated &ldquo;Last
+              updated&rdquo; date.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">12. Contact Us</h2>
+            <p>
+              If you have questions about this Privacy Policy or our privacy practices,
+              please contact us through our{' '}
+              <Link href="/contact-us" className="text-gray-900 underline">
+                Contact page
+              </Link>
+              .
             </p>
             <div className="mt-4 space-y-2">
-              <p><strong>Email:</strong> <a href="mailto:contact@schoolofmathematics.com" className="text-gray-900 underline">contact@schoolofmathematics.com</a></p>
-              <p><strong>Support:</strong> <a href="mailto:support@schoolofmathematics.com" className="text-gray-900 underline">support@schoolofmathematics.com</a></p>
+              <p>
+                <strong>{SITE_NAME}</strong>
+              </p>
+              <p>
+                Website:{' '}
+                <a href={SITE_URL} className="text-gray-900 underline">
+                  {SITE_URL}
+                </a>
+              </p>
             </div>
           </section>
         </div>
@@ -146,4 +281,3 @@ export default function PrivacyPolicyPage() {
     </div>
   );
 }
-
