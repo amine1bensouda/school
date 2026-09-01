@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import GoogleAnalytics from '@/components/Analytics/GoogleAnalytics';
+import AdSenseScript from '@/components/Ads/AdSenseScript';
 import NavigationProgress from '@/components/Layout/NavigationProgress';
 import ConditionalLayout from '@/components/Layout/ConditionalLayout';
 import CookieBanner from '@/components/Layout/CookieBanner';
@@ -90,10 +91,13 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
       </head>
       <body className="font-sans">
         <SiteSchema />
         <GoogleAnalytics />
+        <AdSenseScript />
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>

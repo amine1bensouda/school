@@ -51,11 +51,12 @@ export const DEFAULT_CATEGORIES = [
 
 // Configuration AdSense
 export const ADSENSE_CONFIG = {
-  clientId: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || '',
+  clientId:
+    process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-9022941899300098',
   adSlot: {
-    display: '1234567890',
-    inArticle: '1234567891',
-    sidebar: '1234567892',
+    display: process.env.NEXT_PUBLIC_ADSENSE_DISPLAY_SLOT || '1234567890',
+    inArticle: process.env.NEXT_PUBLIC_ADSENSE_INARTICLE_SLOT || '1234567891',
+    sidebar: process.env.NEXT_PUBLIC_ADSENSE_SIDEBAR_SLOT || '1234567892',
   },
 } as const;
 

@@ -4,6 +4,7 @@ import {
   isEmailConfigured,
   sendContactFormEmail,
 } from '@/lib/email';
+import { verifyRecaptchaToken } from '@/lib/recaptcha';
 
 const MAX_NAME = 120;
 const MAX_EMAIL = 254;
@@ -23,6 +24,19 @@ export async function POST(request: NextRequest) {
     const name = typeof body.name === 'string' ? body.name.trim() : '';
     const email = typeof body.email === 'string' ? body.email.trim() : '';
     const message = typeof body.message === 'string' ? body.message.trim() : '';
+    const recaptchaToken =
+      typeof body.recaptchaToken === 'string' ? body.recaptchaToken : undefined;
+
+    const recaptcha = await verifyRecaptchaToken(recaptchaToken, {
+      remoteIp:
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        request.ip ||
+        null,
+      action: 'contact',
+    });
+    if (!recaptcha.ok) {
+      return NextResponse.json({ error: recaptcha.error }, { status: 400 });
+    }
 
     if (!name || name.length > MAX_NAME) {
       return NextResponse.json(
