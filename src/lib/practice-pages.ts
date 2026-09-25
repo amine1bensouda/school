@@ -31,29 +31,37 @@ export function shortPracticePageTitle(title: string): string {
   return beforeColon || trimmed;
 }
 
+function stripCoursePrefix(text: string): string {
+  return text
+    .replace(
+      /^(free\s+)?(digital\s+)?(ap calculus (ab|bc)|ap precalculus|psat\/nmsqt|psat 8\/9|psat|act|sat)\s+(math\s+)?(practice(\s+problems)?\s*)?/i,
+      '',
+    )
+    .trim();
+}
+
 function topicLabel(title: string, slug: string): string {
   if (/^free-/.test(slug) && !title.includes(':')) return 'Overview';
 
   const head = title.split('|')[0]?.trim() || title.trim();
   const colon = head.indexOf(':');
-  let topic = colon === -1 ? head : head.slice(colon + 1).trim();
-
   if (colon === -1) {
-    topic = topic
-      .replace(
-        /^(free\s+)?(digital\s+)?(ap calculus (ab|bc)|ap precalculus|psat\/nmsqt|psat 8\/9|psat|act|sat)\s+(math\s+)?(practice\s+)?/i,
-        '',
-      )
-      .trim();
+    const topic = stripCoursePrefix(head);
+    return topic || shortPracticePageTitle(title);
   }
 
-  topic = topic.replace(/\s*\(step-by-step explanations\)\s*/gi, '').trim();
-  topic = topic.replace(/\s+practice$/i, '').trim();
+  const before = head.slice(0, colon).trim();
+  const rawAfter = head.slice(colon + 1).trim();
+  const afterIsGeneric = /^\d+\s+practice problems/i.test(rawAfter);
 
-  if (!topic || /^practice$/i.test(topic)) {
-    return shortPracticePageTitle(title);
+  if (afterIsGeneric) {
+    return stripCoursePrefix(before) || before;
   }
-  return topic;
+
+  const after = rawAfter
+    .replace(/\s*\([^)]*step-by-step explanations[^)]*\)\s*/gi, '')
+    .trim();
+  return after || stripCoursePrefix(before) || before;
 }
 
 /** Menu Additional Resources : un bloc par cours (SAT, ACT, …). */
