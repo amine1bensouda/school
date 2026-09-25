@@ -83,9 +83,7 @@ export async function getCourseBySlug(slug: string) {
                   },
                 },
               },
-              orderBy: {
-                createdAt: 'desc',
-              },
+              orderBy: [{ order: 'asc' }, { title: 'asc' }],
             },
             lessons: {
               select: {
