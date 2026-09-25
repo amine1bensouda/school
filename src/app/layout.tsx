@@ -12,6 +12,8 @@ import SiteSchema from '@/components/SEO/SiteSchema';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, SITE_HOME_TITLE } from '@/lib/constants';
 import { getAllPublishedPagesData } from '@/lib/cache';
 import type { PracticePageLink } from '@/lib/practice-pages';
+import { listCourseLessonGroups } from '@/lib/course-lessons';
+import type { LessonMenuGroup } from '@/lib/lesson-menu';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -84,6 +86,14 @@ export default async function RootLayout({
     practicePages = [];
   }
 
+  const lessonMenu: LessonMenuGroup[] = listCourseLessonGroups().map((group) => ({
+    name: group.shortName,
+    lessons: group.lessons.map((lesson) => ({
+      title: lesson.title,
+      href: `/quiz/course/${encodeURIComponent(group.courseSlug)}/lesson/${lesson.slug}`,
+    })),
+  }));
+
   return (
     <html lang="en">
       <head>
@@ -101,7 +111,9 @@ export default async function RootLayout({
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>
-        <ConditionalLayout practicePages={practicePages}>{children}</ConditionalLayout>
+        <ConditionalLayout practicePages={practicePages} lessonMenu={lessonMenu}>
+          {children}
+        </ConditionalLayout>
         <CookieBanner />
         <Analytics />
         <SpeedInsights />

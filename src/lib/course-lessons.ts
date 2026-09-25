@@ -1,4 +1,4 @@
-import { courseGuideKey } from '@/lib/course-guides';
+import { courseGuideKey, courseGuides } from '@/lib/course-guides';
 
 export type CourseLesson = {
   slug: string;
@@ -1105,6 +1105,35 @@ const lessonsByCourse: Record<string, CourseLesson[]> = {
     },
   ],
 };
+
+/** Slugs publics des cours, pour les liens du menu et de la page Lesson. */
+const publishedCourseSlugs: { key: string; slug: string; shortName: string }[] = [
+  { key: 'psat-8-9-math', slug: 'PSAT-8-9-Math-Qbank', shortName: 'PSAT 8/9' },
+  { key: 'sat-math', slug: 'SAT-Math-Qbank', shortName: 'SAT' },
+  { key: 'act-math', slug: 'ACT-Math-Qbank', shortName: 'ACT' },
+  { key: 'psat-nmsqt', slug: 'PSAT-NMSQT-QBank', shortName: 'PSAT/NMSQT' },
+  { key: 'ap-calculus-ab', slug: 'AP-Calculus-AB-QBank', shortName: 'AP Calculus AB' },
+  { key: 'ap-calculus-bc', slug: 'AP-Calculus-BC-QBank', shortName: 'AP Calculus BC' },
+  { key: 'ap-precalculus', slug: 'AP-Precalculus-QBank', shortName: 'AP Precalculus' },
+];
+
+export type CourseLessonGroup = {
+  courseSlug: string;
+  courseName: string;
+  shortName: string;
+  lessons: CourseLesson[];
+};
+
+export function listCourseLessonGroups(): CourseLessonGroup[] {
+  return publishedCourseSlugs
+    .map(({ key, slug, shortName }) => ({
+      courseSlug: slug,
+      courseName: courseGuides[key]?.name ?? shortName,
+      shortName,
+      lessons: lessonsByCourse[key] ?? [],
+    }))
+    .filter((group) => group.lessons.length > 0);
+}
 
 export function getCourseLessons(courseSlug: string): CourseLesson[] {
   return lessonsByCourse[courseGuideKey(courseSlug)] ?? [];
