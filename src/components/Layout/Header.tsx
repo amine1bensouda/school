@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { SITE_NAME } from '@/lib/constants';
 import { getCurrentUser } from '@/lib/auth-client';
 import {
-  shortPracticePageTitle,
+  groupPracticePages,
   type PracticePageLink,
 } from '@/lib/practice-pages';
 import type { LessonMenuGroup } from '@/lib/lesson-menu';
@@ -53,6 +53,7 @@ export default function Header({
   };
 
   const practiceActive = isActive('/pages');
+  const practiceGroups = groupPracticePages(practicePages);
   const examsActive = Boolean(pathname?.startsWith('/quiz') && !pathname.includes('/lesson'));
   const lessonsActive = pathname === '/lessons' || Boolean(pathname?.includes('/lesson'));
 
@@ -209,19 +210,26 @@ export default function Header({
                 </button>
                 {practiceMenuOpen && (
                   <div className="absolute left-0 mt-2 w-80 max-h-[70vh] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg py-2 z-50">
-                    {practicePages.map((page) => (
-                      <Link
-                        key={page.slug}
-                        href={`/pages/${page.slug}`}
-                        title={page.title}
-                        className={`block px-4 py-2.5 text-sm hover:bg-gray-50 ${
-                          pathname === `/pages/${page.slug}`
-                            ? 'bg-gray-100 text-gray-900 font-medium'
-                            : 'text-gray-700'
-                        }`}
-                      >
-                        {shortPracticePageTitle(page.title)}
-                      </Link>
+                    {practiceGroups.map((group) => (
+                      <div key={group.name} className="mt-1 border-t border-gray-100 pt-1 first:mt-0 first:border-t-0 first:pt-0">
+                        <p className="px-4 pt-2 pb-1 text-xs font-extrabold uppercase tracking-wide text-gray-500">
+                          {group.name}
+                        </p>
+                        {group.pages.map((page) => (
+                          <Link
+                            key={page.slug}
+                            href={`/pages/${page.slug}`}
+                            title={page.title}
+                            className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
+                              pathname === `/pages/${page.slug}`
+                                ? 'bg-gray-100 text-gray-900 font-medium'
+                                : 'text-gray-700'
+                            }`}
+                          >
+                            {page.label}
+                          </Link>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}
@@ -463,21 +471,28 @@ export default function Header({
                     </svg>
                   </button>
                   {mobilePracticeOpen && (
-                    <div className="ml-2 mt-1 max-h-64 overflow-y-auto border-l border-gray-200 pl-2">
-                      {practicePages.map((page) => (
-                        <Link
-                          key={page.slug}
-                          href={`/pages/${page.slug}`}
-                          title={page.title}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={`block px-3 py-2 text-sm rounded-lg ${
-                            pathname === `/pages/${page.slug}`
-                              ? 'bg-gray-100 text-gray-900 font-medium'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
-                          {shortPracticePageTitle(page.title)}
-                        </Link>
+                    <div className="ml-2 mt-1 max-h-80 overflow-y-auto border-l border-gray-200 pl-2">
+                      {practiceGroups.map((group) => (
+                        <div key={group.name} className="mt-2">
+                          <p className="px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-gray-500">
+                            {group.name}
+                          </p>
+                          {group.pages.map((page) => (
+                            <Link
+                              key={page.slug}
+                              href={`/pages/${page.slug}`}
+                              title={page.title}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className={`block px-3 py-2 text-sm rounded-lg ${
+                                pathname === `/pages/${page.slug}`
+                                  ? 'bg-gray-100 text-gray-900 font-medium'
+                                  : 'text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
+                              {page.label}
+                            </Link>
+                          ))}
+                        </div>
                       ))}
                     </div>
                   )}
