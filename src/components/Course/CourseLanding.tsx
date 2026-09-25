@@ -3,8 +3,10 @@ import type { CourseGuide } from '@/lib/course-guides';
 import { courseGuideKey } from '@/lib/course-guides';
 import type { CourseLesson } from '@/lib/course-lessons';
 import FaqSchema from '@/components/SEO/FaqSchema';
-import ShowMore from '@/components/Course/ShowMore';
+import DisplayAd from '@/components/Ads/DisplayAd';
 import ExamGrid, { type ExamCard } from '@/components/Course/ExamGrid';
+import TopicModule from '@/components/Course/TopicModule';
+import CourseFaq from '@/components/Course/CourseFaq';
 
 export type LandingQuiz = ExamCard;
 
@@ -100,20 +102,23 @@ function moduleKind(title: string): 'full' | 'mini' | 'topic' {
   return 'topic';
 }
 
-function quizChip(quiz: LandingQuiz) {
-  return (
-    <Link
-      key={quiz.slug}
-      href={`/quiz/${encodeURIComponent(quiz.slug)}`}
-      className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-800 hover:border-gray-900"
-    >
-      {quiz.title}
-      <span className="ml-1 text-gray-400" aria-hidden>
-        →
-      </span>
-    </Link>
-  );
-}
+const MODULE_COLORS = [
+  { bar: 'bg-blue-600', arrow: 'text-blue-600' },
+  { bar: 'bg-violet-600', arrow: 'text-violet-600' },
+  { bar: 'bg-teal-600', arrow: 'text-teal-600' },
+  { bar: 'bg-rose-600', arrow: 'text-rose-600' },
+  { bar: 'bg-indigo-600', arrow: 'text-indigo-600' },
+  { bar: 'bg-amber-600', arrow: 'text-amber-600' },
+];
+
+const SCORE_STYLES = [
+  'bg-red-100 text-red-800',
+  'bg-amber-100 text-amber-800',
+  'bg-blue-100 text-blue-800',
+  'bg-green-100 text-green-800',
+  'bg-purple-100 text-purple-800',
+  'bg-slate-900 text-amber-400',
+];
 
 interface CourseLandingProps {
   courseTitle: string;
@@ -150,70 +155,85 @@ export default function CourseLanding({
     description?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() ??
     `Free ${courseTitle} practice. Work through topic quizzes, then longer sets when the method is clear.`;
 
+  const courseName = guide?.name ?? courseTitle;
+  const plainDescription = description?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
   return (
-    <div className="bg-white">
+    <div className="bg-white text-gray-900">
       {guide && <FaqSchema items={guide.faq} />}
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-5xl">
-        <nav className="mb-6 text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-900">Home</Link>
-          <span className="mx-1.5">›</span>
-          <Link href="/quiz" className="hover:text-gray-900">Exams</Link>
-          <span className="mx-1.5">›</span>
-          <span className="text-gray-900">{courseTitle}</span>
+
+      <header className="bg-slate-900 px-4 py-12 sm:px-8 sm:py-16 text-center">
+        <h1 className="mx-auto max-w-3xl text-3xl font-extrabold leading-tight text-white sm:text-5xl">
+          Free {courseName} Practice — <em className="font-serif italic text-amber-400">{headline}</em>
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/70">{summary}</p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          {firstQuiz && (
+            <Link
+              href={`/quiz/${encodeURIComponent(firstQuiz.slug)}`}
+              className="rounded-lg bg-amber-400 px-7 py-3 text-[15px] font-bold text-black hover:bg-amber-500"
+            >
+              Start Free Practice →
+            </Link>
+          )}
+          <a
+            href="#practice"
+            className="rounded-lg border border-white/35 px-7 py-3 text-[15px] font-semibold text-white hover:border-white/60"
+          >
+            Browse All Topics
+          </a>
+        </div>
+        <dl className="mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-x-10 gap-y-4">
+          {[
+            { value: String(quizCount), label: 'Quizzes' },
+            { value: String(topicModules.length), label: 'Modules' },
+            { value: String(fullExams.length), label: 'Full practice exams' },
+            { value: String(miniExams.length), label: 'Timed mini-exams' },
+            { value: '$0', label: 'Cost, forever' },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <dd className="text-[28px] font-extrabold text-white">{stat.value}</dd>
+              <dt className="mt-1 text-[9px] font-semibold uppercase tracking-widest text-white/40">{stat.label}</dt>
+            </div>
+          ))}
+        </dl>
+      </header>
+
+      <div className="mx-auto max-w-[980px] px-4 sm:px-8">
+        <DisplayAd className="my-6" />
+        <nav className="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+          <Link href="/" className="text-blue-600 hover:underline">Home</Link>
+          <span>›</span>
+          <Link href="/quiz" className="text-blue-600 hover:underline">Exams</Link>
+          <span>›</span>
+          <span className="text-gray-700">{courseTitle}</span>
         </nav>
 
-        <header className="mb-10">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 leading-tight">
-            Free {guide?.name ?? courseTitle} Practice
-            <span className="block mt-2 font-serif italic font-medium text-gray-700">{headline}</span>
-          </h1>
-          <p className="mt-5 text-lg text-gray-600 leading-relaxed max-w-3xl">{summary}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            {firstQuiz && (
-              <Link
-                href={`/quiz/${encodeURIComponent(firstQuiz.slug)}`}
-                className="inline-flex items-center rounded-lg bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800"
-              >
-                Start Free Practice →
-              </Link>
-            )}
-            <a
-              href="#practice"
-              className="inline-flex items-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 hover:border-gray-900"
-            >
-              Browse All Topics
-            </a>
-          </div>
-
-          <dl className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {[
-              { value: String(quizCount), label: 'Quizzes' },
-              { value: String(topicModules.length), label: 'Topic modules' },
-              { value: String(fullExams.length), label: 'Full practice sets' },
-              { value: String(miniExams.length), label: 'Timed mini-exams' },
-              { value: '$0', label: 'Cost, forever' },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-gray-200 px-4 py-3">
-                <dt className="text-xs uppercase tracking-wide text-gray-500">{stat.label}</dt>
-                <dd className="mt-1 text-2xl font-bold text-gray-900">{stat.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </header>
-
-        <section className="mb-12 space-y-4 text-gray-700 leading-relaxed">
+        <div className="grid grid-cols-1 items-start gap-8 pb-16 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-800">{courseName}</span>
+              <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-[11px] font-semibold text-indigo-800">Exam prep</span>
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">2026</span>
+              <span className="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-800">Free resource</span>
+            </div>
+        <section className="mb-6 space-y-3 text-[14.5px] leading-relaxed text-gray-700">
           {(guide?.introduction ?? []).map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900">
-            Completely free. Every quiz on this page can be opened without an account. The site is supported by display advertising.
-          </p>
+          {!guide?.introduction?.length && plainDescription && <p>{plainDescription}</p>}
+          <div className="flex items-start gap-2.5 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-[13.5px] leading-relaxed text-green-800">
+            <span className="mt-0.5 text-green-600" aria-hidden>✓</span>
+            <p>
+              <strong>Completely free — no paywall, no account needed.</strong> Every quiz on this page opens immediately. The site is supported by display advertising.
+            </p>
+          </div>
         </section>
 
         {guide && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">{guide.overviewTitle}</h2>
-            <div className="space-y-4 text-gray-700 leading-relaxed">
+          <section className="mb-6">
+            <h2 className="mb-2 text-xl font-extrabold text-gray-900">{guide.overviewTitle}</h2>
+            <div className="space-y-3 text-[14.5px] leading-relaxed text-gray-700">
               {guide.overview.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
@@ -222,163 +242,155 @@ export default function CourseLanding({
         )}
 
         {scores && (
-          <section className="mb-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{scores.title}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {scores.bands.map((band) => (
-                <div key={band.range} className="rounded-xl border border-gray-200 px-3 py-3">
-                  <p className="font-bold text-gray-900">{band.range}</p>
-                  <p className="text-sm text-gray-600">{band.label}</p>
+          <section className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <h2 className="mb-2 text-[13px] font-extrabold text-blue-800">{scores.title}</h2>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {scores.bands.map((band, index) => (
+                <div key={band.range} className={`rounded-md px-2 py-2 text-center ${SCORE_STYLES[index % SCORE_STYLES.length]}`}>
+                  <p className="text-sm font-extrabold">{band.range}</p>
+                  <p className="mt-0.5 text-[10px] opacity-80">{band.label}</p>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-sm text-gray-500">
-              These ranges are general checkpoints. A score on this site is practice feedback, not an official result.
+            <p className="mt-2 text-[11px] text-blue-800/70">
+              Checkpoints only. A result on this site is practice feedback, not an official score.
             </p>
           </section>
         )}
 
         {lessons.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Lessons</h2>
-            <p className="text-gray-600 mb-4">Read the explanation, then use the quizzes below to practice the same idea.</p>
-            <ol className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <section className="mb-6 overflow-hidden rounded-xl border border-gray-200">
+            <div className="flex items-center justify-between bg-slate-900 px-4 py-3.5">
+              <h2 className="text-sm font-extrabold text-white">Lessons</h2>
+              <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold text-white">
+                {lessons.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-1.5 p-3 sm:grid-cols-2">
               {lessons.map((lesson, index) => (
-                <li key={lesson.slug}>
-                  <Link
-                    href={`/quiz/course/${encodeURIComponent(courseSlug)}/lesson/${lesson.slug}`}
-                    className="block h-full rounded-xl border border-gray-200 p-4 hover:border-gray-900"
-                  >
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Lesson {index + 1}
-                    </span>
-                    <span className="mt-1 block font-semibold text-gray-900">{lesson.title}</span>
-                    <span className="mt-1 block text-sm text-gray-600">{lesson.summary}</span>
-                  </Link>
-                </li>
+                <Link
+                  key={lesson.slug}
+                  href={`/quiz/course/${encodeURIComponent(courseSlug)}/lesson/${lesson.slug}`}
+                  className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 hover:bg-white"
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                    Lesson {index + 1}
+                  </span>
+                  <span className="mt-0.5 block text-[13px] font-bold text-gray-900">{lesson.title}</span>
+                </Link>
               ))}
-            </ol>
+            </div>
           </section>
         )}
 
-        <section id="practice" className="mb-12 scroll-mt-24">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Practice by topic</h2>
-          <p className="text-gray-600 mb-6">
-            {topicModules.length} modules covering this course. Drill a weak topic before you open a longer set.
+        <section id="practice" className="mb-6 scroll-mt-24">
+          <h2 className="mb-1 text-xl font-extrabold text-gray-900">Practice by topic</h2>
+          <p className="mb-3 text-[13.5px] text-gray-500">
+            {topicModules.length} modules. Drill a weak topic before you open a longer set.
           </p>
-          <div className="space-y-8">
-            {topicModules.map((module) => (
-              <div key={module.title}>
-                <h3 className="text-lg font-bold text-gray-900">
-                  {module.title}
-                  <span className="ml-2 text-sm font-medium text-gray-500">
-                    {module.quizzes.length} quiz{module.quizzes.length === 1 ? '' : 'zes'}
-                  </span>
-                </h3>
-                <div className="mt-3">
-                  <ShowMore
-                    initial={16}
-                    moreLabel={`Show all ${module.quizzes.length} quizzes`}
-                  >
-                    {module.quizzes.map((quiz) => quizChip(quiz))}
-                  </ShowMore>
-                </div>
-              </div>
-            ))}
-          </div>
+          {topicModules.map((module, index) => {
+            const color = MODULE_COLORS[index % MODULE_COLORS.length];
+            return (
+              <TopicModule
+                key={module.title}
+                title={module.title}
+                quizzes={module.quizzes}
+                barClass={color.bar}
+                arrowClass={color.arrow}
+              />
+            );
+          })}
         </section>
 
         {fullExams.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Full-length practice exams</h2>
-            <p className="text-gray-600 mb-6">
-              {fullExams.length} longer sets. Take the parts back to back when you want a realistic session.
+          <section className="mb-6">
+            <h2 className="mb-1 text-xl font-extrabold text-gray-900">Full-length practice exams</h2>
+            <p className="mb-3 text-[13.5px] text-gray-500">
+              {fullExams.length} longer sets. Take the parts back to back for a realistic session.
             </p>
             <ExamGrid
               exams={fullExams}
-              initial={12}
+              initial={6}
               moreLabel={`Show all ${fullExams.length} full exams`}
+              tone="full"
             />
           </section>
         )}
 
         {miniExams.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Timed mini-exams</h2>
-            <p className="text-gray-600 mb-6">
-              Short timed sets for a daily session. Start these after the topic quizzes feel familiar.
+          <section className="mb-6">
+            <h2 className="mb-1 text-xl font-extrabold text-gray-900">Timed mini-exams</h2>
+            <p className="mb-3 text-[13.5px] text-gray-500">
+              Short timed sets for a daily session, after the topic quizzes feel familiar.
             </p>
             <ExamGrid
               exams={miniExams}
-              initial={12}
+              initial={6}
               moreLabel={`Show all ${miniExams.length} mini-exams`}
+              tone="mini"
             />
           </section>
         )}
 
         {guide && guide.tips.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Tips before you practice</h2>
-            <ol className="space-y-3">
-              {guide.tips.map((tip, index) => (
-                <li key={tip} className="flex gap-3 text-gray-700">
-                  <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
-                    {index + 1}
-                  </span>
-                  <span className="pt-0.5 leading-relaxed">{tip}</span>
-                </li>
+          <section className="mb-6">
+            <h2 className="mb-2 text-xl font-extrabold text-gray-900">Tips before you practice</h2>
+            <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-gray-700">
+              {guide.tips.map((tip) => (
+                <li key={tip}>{tip}</li>
               ))}
             </ol>
           </section>
         )}
 
         {guide && guide.faq.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Frequently asked questions</h2>
-            <dl className="space-y-5">
-              {guide.faq.map((item) => (
-                <div key={item.question} className="border-b border-gray-100 pb-5">
-                  <dt className="font-semibold text-gray-900">{item.question}</dt>
-                  <dd className="mt-1 text-gray-700 leading-relaxed">{item.answer}</dd>
-                </div>
-              ))}
-            </dl>
+          <section className="mb-6">
+            <h2 className="mb-2 text-xl font-extrabold text-gray-900">Frequently asked questions</h2>
+            <CourseFaq items={guide.faq} />
           </section>
         )}
+          </div>
 
-        {related.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Other free question banks</h2>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {related.map((item) => (
-                <li key={item.slug}>
-                  <Link
-                    href={`/quiz/course/${encodeURIComponent(item.slug)}`}
-                    className="block rounded-xl border border-gray-200 px-4 py-3 hover:border-gray-900"
-                  >
-                    <span className="font-semibold text-gray-900">{item.title}</span>
-                    <span className="mt-1 block text-sm text-gray-500">
-                      {item.moduleCount} modules · {item.totalQuizzes} quizzes
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {firstQuiz && (
-          <section className="rounded-2xl bg-gray-900 px-6 py-8 text-white">
-            <h2 className="text-2xl font-bold">Ready to start?</h2>
-            <p className="mt-2 text-gray-300">Free practice. No account needed.</p>
-            <Link
-              href={`/quiz/${encodeURIComponent(firstQuiz.slug)}`}
-              className="mt-5 inline-flex rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-100"
-            >
-              Start Practicing →
-            </Link>
-          </section>
-        )}
+          <aside className="lg:sticky lg:top-24">
+            {related.length > 0 && (
+              <div className="mb-4 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                <h2 className="border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-[11px] font-extrabold uppercase tracking-widest text-gray-500">
+                  Other free question banks
+                </h2>
+                <ul>
+                  {related.map((item) => (
+                    <li key={item.slug} className="border-b border-gray-100 last:border-b-0">
+                      <Link
+                        href={`/quiz/course/${encodeURIComponent(item.slug)}`}
+                        className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50"
+                      >
+                        <span>
+                          <span className="block text-[13px] font-bold text-gray-900">{item.title}</span>
+                          <span className="mt-0.5 block text-[11px] text-gray-400">
+                            {item.moduleCount} modules · {item.totalQuizzes} quizzes
+                          </span>
+                        </span>
+                        <span className="text-gray-300" aria-hidden>›</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {firstQuiz && (
+              <div className="rounded-lg bg-slate-900 p-5 text-center text-white">
+                <p className="text-sm font-extrabold">Ready to start?</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/50">Free practice. No account needed.</p>
+                <Link
+                  href={`/quiz/${encodeURIComponent(firstQuiz.slug)}`}
+                  className="mt-3 block rounded-md bg-amber-400 py-2.5 text-[13px] font-extrabold text-black hover:bg-amber-500"
+                >
+                  Start Practicing →
+                </Link>
+              </div>
+            )}
+          </aside>
+        </div>
       </div>
     </div>
   );
