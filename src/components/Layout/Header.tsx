@@ -116,9 +116,9 @@ export default function Header({
                   }`}
                   aria-expanded={practiceMenuOpen}
                   aria-haspopup="true"
-                  aria-label="Open Practice Guide menu"
+                  aria-label="Open Additional Resources menu"
                 >
-                  Practice Guide
+                  Additional Resources
                   <svg
                     className={`w-4 h-4 transition-transform ${practiceMenuOpen ? 'rotate-180' : ''}`}
                     fill="none"
@@ -326,7 +326,7 @@ export default function Header({
                     }`}
                     aria-expanded={mobilePracticeOpen}
                   >
-                    Practice Guide
+                    Additional Resources
                     <svg
                       className={`w-4 h-4 transition-transform ${
                         mobilePracticeOpen ? 'rotate-180' : ''

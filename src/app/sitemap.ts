@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
-import { getAllQuizSlugs } from '@/lib/quiz-service';
 import { getPublishedCoursesSummaryData, getAllPublishedPagesData } from '@/lib/cache';
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
+import { getCourseLessons } from '@/lib/course-lessons';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -95,23 +95,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  const quizSlugs = await safeSection('quizzes', () => getAllQuizSlugs(), []);
-  const quizPages: MetadataRoute.Sitemap = quizSlugs.map((slug) => ({
-    url: `${baseUrl}/quiz/${encodeURIComponent(slug)}`,
+  const courses = await safeSection('courses', () => getPublishedCoursesSummaryData(), []);
+  const publishedCourses = courses.filter((course) => course.totalQuizzes > 0);
+  const coursePages: MetadataRoute.Sitemap = publishedCourses.map((course) => ({
+    url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}`,
     lastModified: currentDate,
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
-  const courses = await safeSection('courses', () => getPublishedCoursesSummaryData(), []);
-  const coursePages: MetadataRoute.Sitemap = courses
-    .filter((course) => course.totalQuizzes > 0)
-    .map((course) => ({
-      url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}`,
+  const lessonPages: MetadataRoute.Sitemap = publishedCourses.flatMap((course) =>
+    getCourseLessons(course.slug).map((lesson) => ({
+      url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}/lesson/${lesson.slug}`,
       lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }));
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }))
+  );
 
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
@@ -132,8 +132,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticPages,
-    ...quizPages,
     ...coursePages,
+    ...lessonPages,
     ...blogPages,
     ...customPages,
   ];

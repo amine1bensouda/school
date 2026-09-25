@@ -3,7 +3,9 @@ import { SITE_URL } from '@/lib/constants';
 
 /**
  * robots.txt dynamique.
- * AdsBot-Google ignore User-agent: * → Allow explicite requis pour les landings quiz (Google Ads).
+ * Les quiz individuels restent crawlables pour que Google lise leur noindex.
+ * Les pages de cours et de leçons restent autorisées.
+ * AdsBot-Google ignore User-agent: * → Allow explicite requis.
  */
 export default function robots(): MetadataRoute.Robots {
   const disallowPrivate = [

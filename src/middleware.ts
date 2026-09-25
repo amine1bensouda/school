@@ -92,6 +92,18 @@ function isAdminApiRequest(pathname: string): boolean {
  * espace admin, pages d'auth, APIs). On envoie un header X-Robots-Tag qui
  * force la désindexation même si l'URL est crawlée via un lien externe.
  */
+/**
+ * Quiz joueur (/quiz/mon-quiz) : contenu de pratique, pas une page éditoriale.
+ * Les cours (/quiz/course/…) et les leçons restent indexables.
+ */
+function isQuizPlayerPath(pathname: string): boolean {
+  if (!pathname.startsWith('/quiz/')) return false;
+  if (pathname.startsWith('/quiz/course/') || pathname.startsWith('/quiz/lesson/')) {
+    return false;
+  }
+  return true;
+}
+
 const NO_INDEX_PATH_PATTERNS = [
   /^\/quiz\/[^/]+\/correction(\/|$)/,
   /^\/login(\/|$)/,
@@ -187,7 +199,9 @@ export async function middleware(request: NextRequest) {
   // Fonctionne même si la page est un Client Component, et empêche la page
   // d'apparaître dans Google même si elle a été crawlée via un lien externe.
   const attachNoIndexHeaders = (response: NextResponse) => {
-    if (shouldBlockIndexing(pathname)) {
+    if (isQuizPlayerPath(pathname)) {
+      response.headers.set('X-Robots-Tag', 'noindex, follow');
+    } else if (shouldBlockIndexing(pathname)) {
       response.headers.set(
         'X-Robots-Tag',
         'noindex, nofollow, noarchive, nosnippet, noimageindex'

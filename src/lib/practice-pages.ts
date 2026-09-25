@@ -1,4 +1,4 @@
-/** Pages custom publiées pour le menu Practice Guide. */
+/** Pages custom publiées pour le menu Additional Resources. */
 
 export type PracticePageLink = {
   title: string;

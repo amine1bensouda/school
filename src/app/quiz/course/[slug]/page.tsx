@@ -8,7 +8,10 @@ import Accordion from '@/components/Layout/Accordion';
 import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseSchema from '@/components/SEO/CourseSchema';
+import CourseStudyGuide from '@/components/Course/CourseStudyGuide';
 import { getCourseBySlug } from '@/lib/course-service';
+import { getCourseGuide } from '@/lib/course-guides';
+import { getCourseLessons } from '@/lib/course-lessons';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 import { stripHtml } from '@/lib/utils';
@@ -30,11 +33,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const guide = getCourseGuide(course.slug);
   const title = resolveSeoTitle(course.metaTitle, stripHtml(course.title));
   const description =
     resolveSeoDescription(
       course.metaDescription,
       course.description,
+      guide?.summary,
       `${stripHtml(course.title)} course on ${SITE_NAME}.`
     ) || `${stripHtml(course.title)} course on ${SITE_NAME}.`;
   const canonical = `/quiz/course/${encodeURIComponent(course.slug)}`;
@@ -70,7 +75,11 @@ export default async function CoursePage({ params }: PageProps) {
   }
 
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module._count.quizzes, 0);
-  const totalLessons = course.modules.reduce((sum, module) => sum + (module._count.lessons ?? 0), 0);
+  const guide = getCourseGuide(course.slug);
+  const studyLessons = getCourseLessons(course.slug);
+  const totalLessons =
+    course.modules.reduce((sum, module) => sum + (module._count.lessons ?? 0), 0) +
+    studyLessons.length;
 
   return (
     <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">
@@ -131,9 +140,13 @@ export default async function CoursePage({ params }: PageProps) {
             </div>
           </header>
 
-          {/* Liste des modules */}
+          {guide && (
+            <CourseStudyGuide courseSlug={course.slug} guide={guide} lessons={studyLessons} />
+          )}
+
           {course.modules.length > 0 ? (
             <section className="space-y-4 sm:space-y-5 animate-fade-in" aria-label="Modules du cours">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Practice by topic</h2>
               {course.modules.map((module) => {
                 const hasQuizzes = (module._count.quizzes ?? 0) > 0;
                 const hasLessons = (module._count.lessons ?? 0) > 0;
