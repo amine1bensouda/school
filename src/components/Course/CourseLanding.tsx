@@ -147,7 +147,7 @@ export default function CourseLanding({
     .filter((module) => moduleKind(module.title) === 'mini')
     .flatMap((module) => module.quizzes);
   const quizCount = modules.reduce((sum, module) => sum + module.quizzes.length, 0);
-  const firstQuiz = topicModules[0]?.quizzes[0] ?? modules.find((module) => module.quizzes[0])?.quizzes[0];
+  const practiceHref = `/quiz/course/${encodeURIComponent(courseSlug)}/practice`;
   const scores = SCORE_BANDS[courseGuideKey(courseSlug)];
   const headline = guide?.headline ?? 'Practice by topic, then try a full set';
   const summary =
@@ -168,9 +168,9 @@ export default function CourseLanding({
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/70">{summary}</p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {firstQuiz && (
+          {quizCount > 0 && (
             <Link
-              href={`/quiz/${encodeURIComponent(firstQuiz.slug)}`}
+              href={practiceHref}
               className="rounded-lg bg-amber-400 px-7 py-3 text-[15px] font-bold text-black hover:bg-amber-500"
             >
               Start Free Practice →
@@ -222,12 +222,6 @@ export default function CourseLanding({
             <p key={paragraph}>{paragraph}</p>
           ))}
           {!guide?.introduction?.length && plainDescription && <p>{plainDescription}</p>}
-          <div className="flex items-start gap-2.5 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-[13.5px] leading-relaxed text-green-800">
-            <span className="mt-0.5 text-green-600" aria-hidden>✓</span>
-            <p>
-              <strong>Completely free — no paywall, no account needed.</strong> Every quiz on this page opens immediately. The site is supported by display advertising.
-            </p>
-          </div>
         </section>
 
         {guide && (
@@ -377,12 +371,12 @@ export default function CourseLanding({
                 </ul>
               </div>
             )}
-            {firstQuiz && (
+            {quizCount > 0 && (
               <div className="rounded-lg bg-slate-900 p-5 text-center text-white">
                 <p className="text-sm font-extrabold">Ready to start?</p>
                 <p className="mt-1 text-xs leading-relaxed text-white/50">Free practice. No account needed.</p>
                 <Link
-                  href={`/quiz/${encodeURIComponent(firstQuiz.slug)}`}
+                  href={practiceHref}
                   className="mt-3 block rounded-md bg-amber-400 py-2.5 text-[13px] font-extrabold text-black hover:bg-amber-500"
                 >
                   Start Practicing →

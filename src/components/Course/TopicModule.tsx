@@ -27,9 +27,6 @@ export default function TopicModule({
     <section className="mb-3 overflow-hidden rounded-xl border border-gray-200">
       <div className={`flex items-center justify-between gap-3 px-4 py-3.5 ${barClass}`}>
         <h3 className="text-sm font-extrabold text-white">{title}</h3>
-        <span className="whitespace-nowrap rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold text-white">
-          {quizzes.length} quiz{quizzes.length === 1 ? '' : 'zes'}
-        </span>
       </div>
       <div className="grid grid-cols-1 gap-1.5 p-3 sm:grid-cols-2">
         {visible.map((quiz) => (

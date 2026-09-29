@@ -79,14 +79,6 @@ export default function Footer() {
                   All Exams
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/lessons"
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Lesson
-                </Link>
-              </li>
             </ul>
           </div>
 

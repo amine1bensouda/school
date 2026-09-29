@@ -2,8 +2,6 @@ import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
 import { getPublishedCoursesSummaryData, getAllPublishedPagesData } from '@/lib/cache';
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
-import { getCourseLessons } from '@/lib/course-lessons';
-
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -52,12 +50,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/lessons`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
     },
     {
       url: `${baseUrl}/privacy-policy`,
@@ -110,15 +102,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const lessonPages: MetadataRoute.Sitemap = publishedCourses.flatMap((course) =>
-    getCourseLessons(course.slug).map((lesson) => ({
-      url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}/lesson/${lesson.slug}`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    }))
-  );
-
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
     lastModified: post.date ? new Date(post.date) : currentDate,
@@ -139,7 +122,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages,
     ...coursePages,
-    ...lessonPages,
     ...blogPages,
     ...customPages,
   ];

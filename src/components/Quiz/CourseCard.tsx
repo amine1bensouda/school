@@ -10,14 +10,15 @@ interface CourseCardProps {
   moduleCount: number;
   totalQuizzes: number;
   slug: string;
+  lessons?: { slug: string; title: string }[];
 }
 
 export default function CourseCard({
   title,
   description,
   moduleCount,
-  totalQuizzes,
   slug,
+  lessons = [],
 }: CourseCardProps) {
   return (
     <Link
@@ -54,13 +55,18 @@ export default function CourseCard({
           </svg>
           {moduleCount} module{moduleCount !== 1 ? 's' : ''}
         </span>
-        <span className="flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''}
-        </span>
       </div>
+      {lessons.length > 0 && (
+        <ul className="mt-4 space-y-2 border-t border-gray-100 pt-4">
+          {lessons.map((lesson, index) => (
+            <li key={lesson.slug}>
+              <span className="text-sm font-medium text-gray-800">
+                Lesson {index + 1}: {lesson.title}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </Link>
   );
 }

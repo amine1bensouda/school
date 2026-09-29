@@ -10,21 +10,16 @@ import {
   groupPracticePages,
   type PracticePageLink,
 } from '@/lib/practice-pages';
-import type { LessonMenuGroup } from '@/lib/lesson-menu';
 
 export default function Header({
   practicePages = [],
-  lessonMenu = [],
 }: {
   practicePages?: PracticePageLink[];
-  lessonMenu?: LessonMenuGroup[];
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [legalMenuOpen, setLegalMenuOpen] = useState(false);
   const [practiceMenuOpen, setPracticeMenuOpen] = useState(false);
-  const [lessonMenuOpen, setLessonMenuOpen] = useState(false);
   const [mobilePracticeOpen, setMobilePracticeOpen] = useState(false);
-  const [mobileLessonOpen, setMobileLessonOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
@@ -40,9 +35,7 @@ export default function Header({
   useEffect(() => {
     setLegalMenuOpen(false);
     setPracticeMenuOpen(false);
-    setLessonMenuOpen(false);
     setMobilePracticeOpen(false);
-    setMobileLessonOpen(false);
   }, [pathname]);
 
   const isActive = (path: string) => {
@@ -55,7 +48,6 @@ export default function Header({
   const practiceActive = isActive('/pages');
   const practiceGroups = groupPracticePages(practicePages);
   const examsActive = Boolean(pathname?.startsWith('/quiz') && !pathname.includes('/lesson'));
-  const lessonsActive = pathname === '/lessons' || Boolean(pathname?.includes('/lesson'));
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-xl bg-white/95 shadow-lg">
@@ -113,74 +105,12 @@ export default function Header({
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
               )}
             </Link>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setLessonMenuOpen((prev) => !prev);
-                  setPracticeMenuOpen(false);
-                  setLegalMenuOpen(false);
-                }}
-                className={`px-6 py-3 font-medium text-gray-800 transition-colors relative rounded-lg flex items-center gap-1.5 ${
-                  lessonsActive ? 'bg-gray-100' : 'hover:text-gray-900'
-                }`}
-                aria-expanded={lessonMenuOpen}
-                aria-haspopup="true"
-                aria-label="Open Lesson menu"
-              >
-                Lesson
-                <svg
-                  className={`w-4 h-4 transition-transform ${lessonMenuOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-                {lessonsActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
-                )}
-              </button>
-              {lessonMenuOpen && (
-                <div className="absolute left-0 mt-2 w-80 max-h-[70vh] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg py-2 z-50">
-                  <Link
-                    href="/lessons"
-                    className={`block px-4 py-2.5 text-sm font-semibold ${
-                      pathname === '/lessons' ? 'bg-gray-100 text-gray-900' : 'text-gray-800 hover:bg-gray-50'
-                    }`}
-                  >
-                    All lessons
-                  </Link>
-                  {lessonMenu.map((group) => (
-                    <div key={group.name} className="mt-1 border-t border-gray-100 pt-1">
-                      <p className="px-4 pt-2 pb-1 text-xs font-extrabold uppercase tracking-wide text-gray-500">
-                        {group.name}
-                      </p>
-                      {group.lessons.map((lesson) => (
-                        <Link
-                          key={lesson.href}
-                          href={lesson.href}
-                          className={`block px-4 py-2 text-sm ${
-                            pathname === lesson.href
-                              ? 'bg-gray-100 text-gray-900 font-medium'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
-                          {lesson.title}
-                        </Link>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
             {practicePages.length > 0 && (
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => {
                     setPracticeMenuOpen((prev) => !prev);
-                    setLessonMenuOpen(false);
                     setLegalMenuOpen(false);
                   }}
                   className={`px-6 py-3 font-medium text-gray-800 transition-colors relative rounded-lg flex items-center gap-1.5 ${
@@ -395,54 +325,6 @@ export default function Header({
               >
                 Exams
               </Link>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setMobileLessonOpen((prev) => !prev)}
-                  className={`w-full px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center justify-between ${
-                    lessonsActive ? 'bg-gray-100' : 'hover:bg-gray-50'
-                  }`}
-                  aria-expanded={mobileLessonOpen}
-                >
-                  Lesson
-                  <svg
-                    className={`w-4 h-4 transition-transform ${mobileLessonOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {mobileLessonOpen && (
-                  <div className="ml-2 mt-1 max-h-80 overflow-y-auto border-l border-gray-200 pl-2">
-                    <Link
-                      href="/lessons"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-3 py-2 text-sm font-semibold text-gray-800 rounded-lg hover:bg-gray-50"
-                    >
-                      All lessons
-                    </Link>
-                    {lessonMenu.map((group) => (
-                      <div key={group.name} className="mt-2">
-                        <p className="px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-gray-500">
-                          {group.name}
-                        </p>
-                        {group.lessons.map((lesson) => (
-                          <Link
-                            key={lesson.href}
-                            href={lesson.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="block px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50"
-                          >
-                            {lesson.title}
-                          </Link>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
               {practicePages.length > 0 && (
                 <div>
                   <button

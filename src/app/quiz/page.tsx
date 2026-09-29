@@ -4,6 +4,7 @@ import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
 import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 import CourseCard from '@/components/Quiz/CourseCard';
 import { getPublishedCoursesSummary } from '@/lib/course-service';
+import { getCourseLessons } from '@/lib/course-lessons';
 import { SITE_NAME } from '@/lib/constants';
 
 export const revalidate = 300;
@@ -56,6 +57,10 @@ export default async function QuizListPage() {
                   moduleCount={course.moduleCount}
                   totalQuizzes={course.totalQuizzes}
                   slug={course.slug}
+                  lessons={getCourseLessons(course.slug).map((lesson) => ({
+                    slug: lesson.slug,
+                    title: lesson.title,
+                  }))}
                 />
               ))}
             </div>
