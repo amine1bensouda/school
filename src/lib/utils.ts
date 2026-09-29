@@ -172,6 +172,13 @@ export function latexInDoubleDollarsShouldUseBlockDisplay(formula: string): bool
 /**
  * Extrait le texte d'un HTML (pour les excerpts)
  */
+/** Titre de leçon admin, sans balises ni document HTML collé dans le champ. */
+export function lessonDisplayTitle(title: string): string {
+  const head = (title.split('<')[0] ?? title).trim();
+  const plain = stripHtml(head).replace(/\s+/g, ' ').trim();
+  return plain || 'Lesson';
+}
+
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';
   return html

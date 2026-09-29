@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getFeaturedQuiz } from '@/lib/quiz-service';
 import { getStats } from '@/lib/wordpress';
 import { getAllPublishedCourses } from '@/lib/course-service';
-import { getCourseLessons } from '@/lib/course-lessons';
+import { lessonDisplayTitle } from '@/lib/utils';
 import QuizCard from '@/components/Quiz/QuizCard';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_HOME_TITLE } from '@/lib/constants';
 import { formatNumber } from '@/lib/utils';
@@ -148,7 +148,7 @@ export default async function HomePage() {
               {publishedCourses.map((course, index) => {
                 const colors = CARD_COLORS[index % CARD_COLORS.length];
                 const moduleCount = course._count?.modules ?? course.modules?.length ?? 0;
-                const lessons = course.slug ? getCourseLessons(course.slug) : [];
+                const lessons = (course.modules ?? []).flatMap((module) => module.lessons ?? []);
                 return (
                   <div key={course.id} className="backdrop-blur-xl bg-white/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-2xl border border-white/40 hover:shadow-3xl md:hover:scale-105 transition-all duration-300 group active:scale-[0.99]">
                     <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -170,12 +170,12 @@ export default async function HomePage() {
                     {lessons.length > 0 && (
                       <ul className="mb-4 sm:mb-6 space-y-2">
                         {lessons.map((lesson, lessonIndex) => (
-                          <li key={lesson.slug}>
+                          <li key={lesson.id}>
                             <Link
-                              href={`/quiz/course/${encodeURIComponent(course.slug!)}/lesson/${lesson.slug}`}
+                              href={`/quiz/lesson/${encodeURIComponent(lesson.slug)}`}
                               className="block text-sm font-medium text-gray-800 hover:text-indigo-700"
                             >
-                              Lesson {lessonIndex + 1}: {lesson.title}
+                              Lesson {lessonIndex + 1}: {lessonDisplayTitle(lesson.title)}
                             </Link>
                           </li>
                         ))}

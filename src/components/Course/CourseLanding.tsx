@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import type { CourseGuide } from '@/lib/course-guides';
 import { courseGuideKey } from '@/lib/course-guides';
-import type { CourseLesson } from '@/lib/course-lessons';
 import FaqSchema from '@/components/SEO/FaqSchema';
 import DisplayAd from '@/components/Ads/DisplayAd';
 import ExamGrid, { type ExamCard } from '@/components/Course/ExamGrid';
@@ -13,6 +12,12 @@ export type LandingQuiz = ExamCard;
 export type LandingModule = {
   title: string;
   quizzes: LandingQuiz[];
+};
+
+export type LandingLesson = {
+  id: string;
+  title: string;
+  href: string;
 };
 
 export type RelatedCourse = {
@@ -125,7 +130,7 @@ interface CourseLandingProps {
   courseSlug: string;
   description?: string | null;
   guide?: CourseGuide;
-  lessons: CourseLesson[];
+  lessons: LandingLesson[];
   modules: LandingModule[];
   related: RelatedCourse[];
 }
@@ -263,8 +268,8 @@ export default function CourseLanding({
             <div className="grid grid-cols-1 gap-1.5 p-3 sm:grid-cols-2">
               {lessons.map((lesson, index) => (
                 <Link
-                  key={lesson.slug}
-                  href={`/quiz/course/${encodeURIComponent(courseSlug)}/lesson/${lesson.slug}`}
+                  key={lesson.id}
+                  href={lesson.href}
                   className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 hover:bg-white"
                 >
                   <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">

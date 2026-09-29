@@ -57,6 +57,14 @@ export const getAllPublishedCoursesData = unstable_cache(
       include: {
         modules: {
           include: {
+            lessons: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              },
+              orderBy: { order: 'asc' },
+            },
             _count: {
               select: {
                 quizzes: true,
@@ -95,10 +103,15 @@ export const getPublishedCoursesSummaryData = unstable_cache(
         slug: true,
         description: true,
         modules: {
+          orderBy: { order: 'asc' },
           select: {
             quizzes: {
               where: INDEXABLE_QUIZ_WHERE,
               select: { id: true },
+            },
+            lessons: {
+              select: { id: true, title: true, slug: true },
+              orderBy: { order: 'asc' },
             },
           },
         },
@@ -123,6 +136,7 @@ export const getPublishedCoursesSummaryData = unstable_cache(
         (sum, module) => sum + module.quizzes.length,
         0
       ),
+      lessons: course.modules.flatMap((module) => module.lessons),
     }));
   },
   ['courses-published-summary'],

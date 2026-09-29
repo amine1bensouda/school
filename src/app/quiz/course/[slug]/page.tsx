@@ -4,8 +4,8 @@ import CourseSchema from '@/components/SEO/CourseSchema';
 import CourseLanding from '@/components/Course/CourseLanding';
 import { getCourseBySlug, getPublishedCoursesSummary } from '@/lib/course-service';
 import { getCourseGuide } from '@/lib/course-guides';
-import { getCourseLessons } from '@/lib/course-lessons';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
+import { lessonDisplayTitle } from '@/lib/utils';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 import { stripHtml } from '@/lib/utils';
 
@@ -71,7 +71,13 @@ export default async function CoursePage({ params }: PageProps) {
   }
 
   const guide = getCourseGuide(course.slug);
-  const studyLessons = getCourseLessons(course.slug);
+  const studyLessons = course.modules.flatMap((module) =>
+    module.lessons.map((lesson) => ({
+      id: lesson.id,
+      title: lessonDisplayTitle(lesson.title),
+      href: `/quiz/lesson/${encodeURIComponent(lesson.slug)}`,
+    }))
+  );
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module.quizzes.length, 0);
 
   let related: { title: string; slug: string; moduleCount: number; totalQuizzes: number }[] = [];

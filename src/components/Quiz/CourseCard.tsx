@@ -10,7 +10,7 @@ interface CourseCardProps {
   moduleCount: number;
   totalQuizzes: number;
   slug: string;
-  lessons?: { slug: string; title: string }[];
+  lessons?: { id?: string; slug: string; title: string }[];
 }
 
 export default function CourseCard({
@@ -59,7 +59,7 @@ export default function CourseCard({
       {lessons.length > 0 && (
         <ul className="mt-4 space-y-2 border-t border-gray-100 pt-4">
           {lessons.map((lesson, index) => (
-            <li key={lesson.slug}>
+            <li key={lesson.id ?? lesson.slug}>
               <span className="text-sm font-medium text-gray-800">
                 Lesson {index + 1}: {lesson.title}
               </span>
