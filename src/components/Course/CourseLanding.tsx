@@ -11,6 +11,13 @@ export type LandingLesson = {
   href: string;
 };
 
+export type CourseHeroStats = {
+  quizzes: number;
+  modules: number;
+  fullExams: number;
+  miniExams: number;
+};
+
 export type RelatedCourse = {
   title: string;
   slug: string;
@@ -107,6 +114,7 @@ interface CourseLandingProps {
   guide?: CourseGuide;
   lessons: LandingLesson[];
   related: RelatedCourse[];
+  stats: CourseHeroStats;
 }
 
 export default function CourseLanding({
@@ -116,8 +124,9 @@ export default function CourseLanding({
   guide,
   lessons,
   related,
+  stats,
 }: CourseLandingProps) {
-  const firstLesson = lessons[0];
+  const practiceHref = `/quiz/course/${encodeURIComponent(courseSlug)}/practice`;
   const scores = SCORE_BANDS[courseGuideKey(courseSlug)];
   const headline = guide?.headline ?? 'Practice by topic, then try a full set';
   const summary =
@@ -138,26 +147,27 @@ export default function CourseLanding({
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/70">{summary}</p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {firstLesson && (
+          {stats.quizzes > 0 && (
             <Link
-              href={firstLesson.href}
+              href={practiceHref}
               className="rounded-lg bg-amber-400 px-7 py-3 text-[15px] font-bold text-black hover:bg-amber-500"
             >
-              Start with lesson 1 →
+              Start Free Practice →
             </Link>
           )}
-          {lessons.length > 0 && (
-            <a
-              href="#lessons"
-              className="rounded-lg border border-white/35 px-7 py-3 text-[15px] font-semibold text-white hover:border-white/60"
-            >
-              Browse lessons
-            </a>
-          )}
+          <Link
+            href={practiceHref}
+            className="rounded-lg border border-white/35 px-7 py-3 text-[15px] font-semibold text-white hover:border-white/60"
+          >
+            Browse All Topics
+          </Link>
         </div>
         <dl className="mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-x-10 gap-y-4">
           {[
-            { value: String(lessons.length), label: lessons.length === 1 ? 'Lesson' : 'Lessons' },
+            { value: String(stats.quizzes), label: 'Quizzes' },
+            { value: String(stats.modules), label: 'Modules' },
+            { value: String(stats.fullExams), label: 'Full practice exams' },
+            { value: String(stats.miniExams), label: 'Timed mini-exams' },
             { value: '$0', label: 'Cost, forever' },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
@@ -291,15 +301,15 @@ export default function CourseLanding({
                 </ul>
               </div>
             )}
-            {firstLesson && (
+            {stats.quizzes > 0 && (
               <div className="rounded-lg bg-slate-900 p-5 text-center text-white">
                 <p className="text-sm font-extrabold">Ready to start?</p>
-                <p className="mt-1 text-xs leading-relaxed text-white/50">Open the first lesson.</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/50">Free practice. No account needed.</p>
                 <Link
-                  href={firstLesson.href}
+                  href={practiceHref}
                   className="mt-3 block rounded-md bg-amber-400 py-2.5 text-[13px] font-extrabold text-black hover:bg-amber-500"
                 >
-                  Start lesson 1 →
+                  Start Practicing →
                 </Link>
               </div>
             )}

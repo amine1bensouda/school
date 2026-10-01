@@ -78,6 +78,14 @@ export default async function CoursePage({ params }: PageProps) {
     }))
   );
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module.quizzes.length, 0);
+  const isFullExam = (title: string) => /full practice exam|full exam|full-length|simulation exam/i.test(title);
+  const isMiniExam = (title: string) => /mini[-\s]?exam|timed mini/i.test(title);
+  const stats = {
+    quizzes: totalQuizzes,
+    modules: course.modules.filter((module) => !isFullExam(module.title) && !isMiniExam(module.title) && module.quizzes.length > 0).length,
+    fullExams: course.modules.filter((module) => isFullExam(module.title)).reduce((sum, module) => sum + module.quizzes.length, 0),
+    miniExams: course.modules.filter((module) => isMiniExam(module.title)).reduce((sum, module) => sum + module.quizzes.length, 0),
+  };
 
   let related: { title: string; slug: string; moduleCount: number; totalQuizzes: number }[] = [];
   try {
@@ -110,6 +118,7 @@ export default async function CoursePage({ params }: PageProps) {
         guide={guide}
         lessons={studyLessons}
         related={related}
+        stats={stats}
       />
     </>
   );
