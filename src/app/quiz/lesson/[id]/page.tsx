@@ -5,7 +5,9 @@ import Image from 'next/image';
 import Navigation from '@/components/Layout/Navigation';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
+import LessonDocumentView from '@/components/Lesson/LessonDocument';
 import { getLessonByIdOrSlug } from '@/lib/lesson-service';
+import { prepareLessonDocument } from '@/lib/lesson-document';
 import { SITE_URL } from '@/lib/constants';
 
 interface Lesson {
@@ -74,6 +76,7 @@ export default async function LessonPage({ params }: PageProps) {
   }
 
   const courseSlug = lesson.module?.course.slug;
+  const document = prepareLessonDocument(lesson.content);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50">
@@ -109,7 +112,9 @@ export default async function LessonPage({ params }: PageProps) {
             </div>
           )}
           <div className="p-6 sm:p-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{lesson.title}</h1>
+            {!document && (
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{lesson.title}</h1>
+            )}
 
             {lesson.videoUrl && (
               <div className="mb-6 rounded-xl overflow-hidden bg-black">
@@ -150,11 +155,13 @@ export default async function LessonPage({ params }: PageProps) {
               </div>
             )}
 
-            {lesson.content && (
+            {document ? (
+              <LessonDocumentView html={document.html} css={document.css} />
+            ) : lesson.content ? (
               <div className="prose prose-gray max-w-none">
                 <SafeHtmlRenderer html={lesson.content} renderMath />
               </div>
-            )}
+            ) : null}
 
             {lesson.ctaLink && lesson.ctaText && (
               <div className="mt-8">
