@@ -6,20 +6,10 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SITE_NAME } from '@/lib/constants';
 import { getCurrentUser } from '@/lib/auth-client';
-import {
-  groupPracticePages,
-  type PracticePageLink,
-} from '@/lib/practice-pages';
 
-export default function Header({
-  practicePages = [],
-}: {
-  practicePages?: PracticePageLink[];
-}) {
+export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [legalMenuOpen, setLegalMenuOpen] = useState(false);
-  const [practiceMenuOpen, setPracticeMenuOpen] = useState(false);
-  const [mobilePracticeOpen, setMobilePracticeOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
@@ -34,8 +24,6 @@ export default function Header({
 
   useEffect(() => {
     setLegalMenuOpen(false);
-    setPracticeMenuOpen(false);
-    setMobilePracticeOpen(false);
   }, [pathname]);
 
   const isActive = (path: string) => {
@@ -45,8 +33,7 @@ export default function Header({
     return pathname === path || pathname?.startsWith(path);
   };
 
-  const practiceActive = isActive('/pages');
-  const practiceGroups = groupPracticePages(practicePages);
+  const practiceActive = pathname === '/additional-resources' || Boolean(pathname?.startsWith('/pages/'));
   const examsActive = Boolean(pathname?.startsWith('/quiz') && !pathname.includes('/lesson'));
 
   return (
@@ -105,66 +92,17 @@ export default function Header({
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
               )}
             </Link>
-            {practicePages.length > 0 && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPracticeMenuOpen((prev) => !prev);
-                    setLegalMenuOpen(false);
-                  }}
-                  className={`px-6 py-3 font-medium text-gray-800 transition-colors relative rounded-lg flex items-center gap-1.5 ${
-                    practiceActive ? 'bg-gray-100' : 'hover:text-gray-900'
-                  }`}
-                  aria-expanded={practiceMenuOpen}
-                  aria-haspopup="true"
-                  aria-label="Open Additional Resources menu"
-                >
-                  Additional Resources
-                  <svg
-                    className={`w-4 h-4 transition-transform ${practiceMenuOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                  {practiceActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
-                  )}
-                </button>
-                {practiceMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-80 max-h-[70vh] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg py-2 z-50">
-                    {practiceGroups.map((group) => (
-                      <div key={group.name} className="mt-1 border-t border-gray-100 pt-1 first:mt-0 first:border-t-0 first:pt-0">
-                        <p className="px-4 pt-2 pb-1 text-xs font-extrabold uppercase tracking-wide text-gray-500">
-                          {group.name}
-                        </p>
-                        {group.pages.map((page) => (
-                          <Link
-                            key={page.slug}
-                            href={`/pages/${page.slug}`}
-                            title={page.title}
-                            className={`block px-4 py-2 text-sm hover:bg-gray-50 ${
-                              pathname === `/pages/${page.slug}`
-                                ? 'bg-gray-100 text-gray-900 font-medium'
-                                : 'text-gray-700'
-                            }`}
-                          >
-                            {page.label}
-                          </Link>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            <Link
+              href="/additional-resources"
+              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+                practiceActive ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
+              }`}
+            >
+              Additional Resources
+              {practiceActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
+              )}
+            </Link>
             <Link
               href="/about-us"
               className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
@@ -194,7 +132,6 @@ export default function Header({
                 type="button"
                 onClick={() => {
                   setLegalMenuOpen((prev) => !prev);
-                  setPracticeMenuOpen(false);
                 }}
                 className={`px-6 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center gap-2 ${
                   isActive('/terms-of-service') ||
@@ -325,61 +262,15 @@ export default function Header({
               >
                 Exams
               </Link>
-              {practicePages.length > 0 && (
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePracticeOpen((prev) => !prev)}
-                    className={`w-full px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center justify-between ${
-                      practiceActive ? 'bg-gray-100' : 'hover:bg-gray-50'
-                    }`}
-                    aria-expanded={mobilePracticeOpen}
-                  >
-                    Additional Resources
-                    <svg
-                      className={`w-4 h-4 transition-transform ${
-                        mobilePracticeOpen ? 'rotate-180' : ''
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-                  {mobilePracticeOpen && (
-                    <div className="ml-2 mt-1 max-h-80 overflow-y-auto border-l border-gray-200 pl-2">
-                      {practiceGroups.map((group) => (
-                        <div key={group.name} className="mt-2">
-                          <p className="px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-gray-500">
-                            {group.name}
-                          </p>
-                          {group.pages.map((page) => (
-                            <Link
-                              key={page.slug}
-                              href={`/pages/${page.slug}`}
-                              title={page.title}
-                              onClick={() => setMobileMenuOpen(false)}
-                              className={`block px-3 py-2 text-sm rounded-lg ${
-                                pathname === `/pages/${page.slug}`
-                                  ? 'bg-gray-100 text-gray-900 font-medium'
-                                  : 'text-gray-700 hover:bg-gray-50'
-                              }`}
-                            >
-                              {page.label}
-                            </Link>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <Link
+                href="/additional-resources"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                  practiceActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+                }`}
+              >
+                Additional Resources
+              </Link>
               <Link
                 href="/about-us"
                 onClick={() => setMobileMenuOpen(false)}

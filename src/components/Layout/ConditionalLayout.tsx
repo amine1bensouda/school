@@ -3,14 +3,11 @@
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
-import type { PracticePageLink } from '@/lib/practice-pages';
 
 export default function ConditionalLayout({
   children,
-  practicePages = [],
 }: {
   children: React.ReactNode;
-  practicePages?: PracticePageLink[];
 }) {
   const pathname = usePathname();
   const isAdminLogin = pathname === '/admin/login';
@@ -24,7 +21,7 @@ export default function ConditionalLayout({
 
   return (
     <>
-      <Header practicePages={practicePages} />
+      <Header />
       <main className="min-h-screen">{children}</main>
       <Footer />
     </>
