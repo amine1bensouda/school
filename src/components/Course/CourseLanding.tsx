@@ -13,7 +13,7 @@ export type LandingLesson = {
 
 export type CourseHeroStats = {
   quizzes: number;
-  modules: number;
+  questions: number;
   fullExams: number;
   miniExams: number;
 };
@@ -165,10 +165,9 @@ export default function CourseLanding({
         <dl className="mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-x-10 gap-y-4">
           {[
             { value: String(stats.quizzes), label: 'Quizzes' },
-            { value: String(stats.modules), label: 'Modules' },
+            { value: String(stats.questions), label: 'Questions' },
             { value: String(stats.fullExams), label: 'Full practice exams' },
             { value: String(stats.miniExams), label: 'Timed mini-exams' },
-            { value: '$0', label: 'Cost, forever' },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <dd className="text-[28px] font-extrabold text-white">{stat.value}</dd>

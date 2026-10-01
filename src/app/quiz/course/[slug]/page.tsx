@@ -82,7 +82,10 @@ export default async function CoursePage({ params }: PageProps) {
   const isMiniExam = (title: string) => /mini[-\s]?exam|timed mini/i.test(title);
   const stats = {
     quizzes: totalQuizzes,
-    modules: course.modules.filter((module) => !isFullExam(module.title) && !isMiniExam(module.title) && module.quizzes.length > 0).length,
+    questions: course.modules.reduce(
+      (sum, module) => sum + module.quizzes.reduce((quizSum, quiz) => quizSum + (quiz.acf?.nombre_questions || 0), 0),
+      0
+    ),
     fullExams: course.modules.filter((module) => isFullExam(module.title)).reduce((sum, module) => sum + module.quizzes.length, 0),
     miniExams: course.modules.filter((module) => isMiniExam(module.title)).reduce((sum, module) => sum + module.quizzes.length, 0),
   };
