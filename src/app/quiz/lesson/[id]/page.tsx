@@ -8,6 +8,7 @@ import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import LessonDocumentView from '@/components/Lesson/LessonDocument';
 import { getLessonByIdOrSlug } from '@/lib/lesson-service';
 import { prepareLessonDocument } from '@/lib/lesson-document';
+import { youtubeEmbedUrl } from '@/lib/youtube';
 import { SITE_URL } from '@/lib/constants';
 
 interface Lesson {
@@ -78,6 +79,9 @@ export default async function LessonPage({ params }: PageProps) {
 
   const courseSlug = lesson.module?.course.slug;
   const document = prepareLessonDocument(lesson.content);
+  const youtubeSrc = lesson.videoUrl
+    ? youtubeEmbedUrl(lesson.videoUrl, lesson.videoPlaybackSeconds)
+    : null;
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50">
@@ -117,23 +121,28 @@ export default async function LessonPage({ params }: PageProps) {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{lesson.title}</h1>
             )}
 
-            {lesson.videoUrl && (
-              <div className="mb-6 rounded-xl overflow-hidden bg-black">
+            {youtubeSrc ? (
+              <div className="mb-6 overflow-hidden rounded-xl bg-black">
+                <iframe
+                  src={youtubeSrc}
+                  title={lesson.title}
+                  className="aspect-video w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            ) : lesson.videoUrl ? (
+              <div className="mb-6 overflow-hidden rounded-xl bg-black">
                 <video
                   src={lesson.videoUrl}
                   controls
-                  className="w-full aspect-video"
+                  className="aspect-video w-full"
                   poster={lesson.featuredImageUrl ?? undefined}
                 >
                   Your browser does not support the video tag.
                 </video>
-                {lesson.videoPlaybackSeconds != null && lesson.videoPlaybackSeconds > 0 && (
-                  <p className="text-xs text-gray-400 px-3 py-2">
-                    Duration: {Math.floor(lesson.videoPlaybackSeconds / 60)} min {lesson.videoPlaybackSeconds % 60} s
-                  </p>
-                )}
               </div>
-            )}
+            ) : null}
 
             {lesson.pdfUrl && (
               <div className="mb-6 rounded-xl border border-gray-200 overflow-hidden bg-gray-100">
