@@ -55,6 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${lesson.title} | The School of Mathematics`,
     alternates: { canonical },
+    robots: { index: true, follow: true },
     openGraph: {
       title: lesson.title,
       type: 'article',

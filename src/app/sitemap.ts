@@ -102,6 +102,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const seenLessonSlugs = new Set<string>();
+  const lessonPages: MetadataRoute.Sitemap = courses.flatMap((course) =>
+    course.lessons.flatMap((lesson) => {
+      if (!lesson.slug || seenLessonSlugs.has(lesson.slug)) return [];
+      seenLessonSlugs.add(lesson.slug);
+      return [{
+        url: `${baseUrl}/quiz/lesson/${encodeURIComponent(lesson.slug)}`,
+        lastModified: currentDate,
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      }];
+    })
+  );
+
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
     lastModified: post.date ? new Date(post.date) : currentDate,
@@ -122,6 +136,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages,
     ...coursePages,
+    ...lessonPages,
     ...blogPages,
     ...customPages,
   ];

@@ -5,9 +5,8 @@ import CourseLanding from '@/components/Course/CourseLanding';
 import { getCourseBySlug, getPublishedCoursesSummary } from '@/lib/course-service';
 import { getCourseGuide } from '@/lib/course-guides';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
-import { lessonDisplayTitle } from '@/lib/utils';
+import { lessonDisplayTitle, stripHtml } from '@/lib/utils';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
-import { stripHtml } from '@/lib/utils';
 
 export const revalidate = 300;
 
@@ -111,15 +110,6 @@ export default async function CoursePage({ params }: PageProps) {
         guide={guide}
         lessons={studyLessons}
         related={related}
-        modules={course.modules.map((module) => ({
-          title: module.title,
-          quizzes: module.quizzes.map((quiz) => ({
-            slug: quiz.slug,
-            title: stripHtml(quiz.title.rendered),
-            questionCount: quiz.acf?.nombre_questions || 0,
-            duration: quiz.acf?.duree_estimee,
-          })),
-        }))}
       />
     </>
   );

@@ -3,16 +3,7 @@ import type { CourseGuide } from '@/lib/course-guides';
 import { courseGuideKey } from '@/lib/course-guides';
 import FaqSchema from '@/components/SEO/FaqSchema';
 import DisplayAd from '@/components/Ads/DisplayAd';
-import ExamGrid, { type ExamCard } from '@/components/Course/ExamGrid';
-import TopicModule from '@/components/Course/TopicModule';
 import CourseFaq from '@/components/Course/CourseFaq';
-
-export type LandingQuiz = ExamCard;
-
-export type LandingModule = {
-  title: string;
-  quizzes: LandingQuiz[];
-};
 
 export type LandingLesson = {
   id: string;
@@ -100,22 +91,6 @@ const SCORE_BANDS: Record<string, { title: string; bands: { range: string; label
   },
 };
 
-function moduleKind(title: string): 'full' | 'mini' | 'topic' {
-  const value = title.toLowerCase();
-  if (/full practice exam|full exam|full-length|simulation exam/.test(value)) return 'full';
-  if (/mini[-\s]?exam|timed mini/.test(value)) return 'mini';
-  return 'topic';
-}
-
-const MODULE_COLORS = [
-  { bar: 'bg-blue-600', arrow: 'text-blue-600' },
-  { bar: 'bg-violet-600', arrow: 'text-violet-600' },
-  { bar: 'bg-teal-600', arrow: 'text-teal-600' },
-  { bar: 'bg-rose-600', arrow: 'text-rose-600' },
-  { bar: 'bg-indigo-600', arrow: 'text-indigo-600' },
-  { bar: 'bg-amber-600', arrow: 'text-amber-600' },
-];
-
 const SCORE_STYLES = [
   'bg-red-100 text-red-800',
   'bg-amber-100 text-amber-800',
@@ -131,7 +106,6 @@ interface CourseLandingProps {
   description?: string | null;
   guide?: CourseGuide;
   lessons: LandingLesson[];
-  modules: LandingModule[];
   related: RelatedCourse[];
 }
 
@@ -141,18 +115,9 @@ export default function CourseLanding({
   description,
   guide,
   lessons,
-  modules,
   related,
 }: CourseLandingProps) {
-  const topicModules = modules.filter((module) => moduleKind(module.title) === 'topic' && module.quizzes.length > 0);
-  const fullExams = modules
-    .filter((module) => moduleKind(module.title) === 'full')
-    .flatMap((module) => module.quizzes);
-  const miniExams = modules
-    .filter((module) => moduleKind(module.title) === 'mini')
-    .flatMap((module) => module.quizzes);
-  const quizCount = modules.reduce((sum, module) => sum + module.quizzes.length, 0);
-  const practiceHref = `/quiz/course/${encodeURIComponent(courseSlug)}/practice`;
+  const firstLesson = lessons[0];
   const scores = SCORE_BANDS[courseGuideKey(courseSlug)];
   const headline = guide?.headline ?? 'Practice by topic, then try a full set';
   const summary =
@@ -173,27 +138,26 @@ export default function CourseLanding({
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/70">{summary}</p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {quizCount > 0 && (
+          {firstLesson && (
             <Link
-              href={practiceHref}
+              href={firstLesson.href}
               className="rounded-lg bg-amber-400 px-7 py-3 text-[15px] font-bold text-black hover:bg-amber-500"
             >
-              Start Free Practice →
+              Start with lesson 1 →
             </Link>
           )}
-          <a
-            href="#practice"
-            className="rounded-lg border border-white/35 px-7 py-3 text-[15px] font-semibold text-white hover:border-white/60"
-          >
-            Browse All Topics
-          </a>
+          {lessons.length > 0 && (
+            <a
+              href="#lessons"
+              className="rounded-lg border border-white/35 px-7 py-3 text-[15px] font-semibold text-white hover:border-white/60"
+            >
+              Browse lessons
+            </a>
+          )}
         </div>
         <dl className="mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-x-10 gap-y-4">
           {[
-            { value: String(quizCount), label: 'Quizzes' },
-            { value: String(topicModules.length), label: 'Modules' },
-            { value: String(fullExams.length), label: 'Full practice exams' },
-            { value: String(miniExams.length), label: 'Timed mini-exams' },
+            { value: String(lessons.length), label: lessons.length === 1 ? 'Lesson' : 'Lessons' },
             { value: '$0', label: 'Cost, forever' },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
@@ -258,7 +222,7 @@ export default function CourseLanding({
         )}
 
         {lessons.length > 0 && (
-          <section className="mb-6 overflow-hidden rounded-xl border border-gray-200">
+          <section id="lessons" className="mb-6 scroll-mt-24 overflow-hidden rounded-xl border border-gray-200">
             <div className="flex items-center justify-between bg-slate-900 px-4 py-3.5">
               <h2 className="text-sm font-extrabold text-white">Lessons</h2>
               <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold text-white">
@@ -279,55 +243,6 @@ export default function CourseLanding({
                 </Link>
               ))}
             </div>
-          </section>
-        )}
-
-        <section id="practice" className="mb-6 scroll-mt-24">
-          <h2 className="mb-1 text-xl font-extrabold text-gray-900">Practice by topic</h2>
-          <p className="mb-3 text-[13.5px] text-gray-500">
-            {topicModules.length} modules. Drill a weak topic before you open a longer set.
-          </p>
-          {topicModules.map((module, index) => {
-            const color = MODULE_COLORS[index % MODULE_COLORS.length];
-            return (
-              <TopicModule
-                key={module.title}
-                title={module.title}
-                quizzes={module.quizzes}
-                barClass={color.bar}
-                arrowClass={color.arrow}
-              />
-            );
-          })}
-        </section>
-
-        {fullExams.length > 0 && (
-          <section className="mb-6">
-            <h2 className="mb-1 text-xl font-extrabold text-gray-900">Full-length practice exams</h2>
-            <p className="mb-3 text-[13.5px] text-gray-500">
-              {fullExams.length} longer sets. Take the parts back to back for a realistic session.
-            </p>
-            <ExamGrid
-              exams={fullExams}
-              initial={6}
-              moreLabel={`Show all ${fullExams.length} full exams`}
-              tone="full"
-            />
-          </section>
-        )}
-
-        {miniExams.length > 0 && (
-          <section className="mb-6">
-            <h2 className="mb-1 text-xl font-extrabold text-gray-900">Timed mini-exams</h2>
-            <p className="mb-3 text-[13.5px] text-gray-500">
-              Short timed sets for a daily session, after the topic quizzes feel familiar.
-            </p>
-            <ExamGrid
-              exams={miniExams}
-              initial={6}
-              moreLabel={`Show all ${miniExams.length} mini-exams`}
-              tone="mini"
-            />
           </section>
         )}
 
@@ -366,7 +281,7 @@ export default function CourseLanding({
                         <span>
                           <span className="block text-[13px] font-bold text-gray-900">{item.title}</span>
                           <span className="mt-0.5 block text-[11px] text-gray-400">
-                            {item.moduleCount} modules · {item.totalQuizzes} quizzes
+                            {item.moduleCount} modules
                           </span>
                         </span>
                         <span className="text-gray-300" aria-hidden>›</span>
@@ -376,15 +291,15 @@ export default function CourseLanding({
                 </ul>
               </div>
             )}
-            {quizCount > 0 && (
+            {firstLesson && (
               <div className="rounded-lg bg-slate-900 p-5 text-center text-white">
                 <p className="text-sm font-extrabold">Ready to start?</p>
-                <p className="mt-1 text-xs leading-relaxed text-white/50">Free practice. No account needed.</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/50">Open the first lesson.</p>
                 <Link
-                  href={practiceHref}
+                  href={firstLesson.href}
                   className="mt-3 block rounded-md bg-amber-400 py-2.5 text-[13px] font-extrabold text-black hover:bg-amber-500"
                 >
-                  Start Practicing →
+                  Start lesson 1 →
                 </Link>
               </div>
             )}
