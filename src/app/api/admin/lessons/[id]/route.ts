@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
+import { invalidateLessonsCache } from '@/lib/lesson-service';
 import { generateSlug } from '@/lib/utils';
 
 
@@ -69,6 +70,8 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
       pdfUrl,
       allowPreview,
       order,
+      metaTitle,
+      metaDescription,
     } = body;
 
     const existing = await prisma.lesson.findUnique({
@@ -92,6 +95,8 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
       pdfUrl?: string | null;
       allowPreview?: boolean;
       order?: number;
+      metaTitle?: string | null;
+      metaDescription?: string | null;
     } = {};
 
     if (title !== undefined) updateData.title = String(title).trim();
@@ -128,6 +133,12 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
     if (order !== undefined) {
       const num = Number(order);
       updateData.order = !Number.isNaN(num) ? Math.max(0, Math.floor(num)) : 0;
+    }
+    if (metaTitle !== undefined) {
+      updateData.metaTitle = metaTitle != null && String(metaTitle).trim() !== '' ? String(metaTitle).trim() : null;
+    }
+    if (metaDescription !== undefined) {
+      updateData.metaDescription = metaDescription != null && String(metaDescription).trim() !== '' ? String(metaDescription).trim() : null;
     }
 
     const targetModuleId = updateData.moduleId !== undefined ? updateData.moduleId : existing.moduleId;
@@ -171,6 +182,7 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
             updatedAt: true,
           },
         });
+    invalidateLessonsCache();
     return NextResponse.json(lesson);
   } catch (error: any) {
     console.error('PUT /api/admin/lessons/[id]:', error);
@@ -193,6 +205,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Params 
     await prisma.lesson.delete({
       where: { id: resolved.id },
     });
+    invalidateLessonsCache();
     return NextResponse.json({ ok: true });
   } catch (error: any) {
     console.error('DELETE /api/admin/lessons/[id]:', error);

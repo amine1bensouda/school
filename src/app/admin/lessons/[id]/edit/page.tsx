@@ -31,6 +31,8 @@ export default async function EditLessonPage({
     pdfUrl: lesson.pdfUrl ?? '',
     allowPreview: lesson.allowPreview,
     order: lesson.order,
+    metaTitle: lesson.metaTitle ?? '',
+    metaDescription: lesson.metaDescription ?? '',
   };
 
   return (

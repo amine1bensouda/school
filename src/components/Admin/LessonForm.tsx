@@ -6,6 +6,9 @@ import RichTextEditor from './RichTextEditor';
 import ImageUploadField from './ImageUploadField';
 import VideoUploadField from './VideoUploadField';
 import PdfUploadField from './PdfUploadField';
+import SeoFields from './SeoFields';
+import { SITE_NAME } from '@/lib/constants';
+import { stripHtml } from '@/lib/utils';
 
 interface Module {
   id: string;
@@ -34,6 +37,8 @@ interface LessonFormData {
   pdfUrl: string;
   allowPreview: boolean;
   order: number;
+  metaTitle: string;
+  metaDescription: string;
 }
 
 interface LessonFormProps {
@@ -59,6 +64,8 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
     pdfUrl: '',
     allowPreview: false,
     order: 0,
+    metaTitle: '',
+    metaDescription: '',
     ...initialData,
   });
 
@@ -187,6 +194,19 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
           placeholder="Write the lesson content..."
         />
       </div>
+
+      <SeoFields
+        metaTitle={formData.metaTitle}
+        metaDescription={formData.metaDescription}
+        defaultTitle={formData.title ? `${formData.title} | ${SITE_NAME}` : ''}
+        defaultDescription={stripHtml(formData.content || '')}
+        onMetaTitleChange={(value) =>
+          setFormData((prev) => ({ ...prev, metaTitle: value }))
+        }
+        onMetaDescriptionChange={(value) =>
+          setFormData((prev) => ({ ...prev, metaDescription: value }))
+        }
+      />
 
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">

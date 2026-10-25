@@ -51,6 +51,8 @@ model Lesson {
   module               Module?  @relation(fields: [moduleId], references: [id], onDelete: SetNull)
   title                String
   slug                 String
+  metaTitle            String?
+  metaDescription      String?
   content              String   @default("")
   ctaLink              String?
   ctaText              String?

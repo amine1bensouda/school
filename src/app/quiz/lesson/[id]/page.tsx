@@ -9,7 +9,9 @@ import LessonDocumentView from '@/components/Lesson/LessonDocument';
 import { getLessonByIdOrSlug } from '@/lib/lesson-service';
 import { prepareLessonDocument } from '@/lib/lesson-document';
 import { youtubeEmbedUrl } from '@/lib/youtube';
-import { SITE_URL } from '@/lib/constants';
+import { SITE_NAME, SITE_URL } from '@/lib/constants';
+import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
+import { stripHtml } from '@/lib/utils';
 
 interface Lesson {
   id: string;
@@ -52,15 +54,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const canonical = `/quiz/lesson/${encodeURIComponent(lesson.slug)}`;
+  const seoTitle = resolveSeoTitle(lesson.metaTitle, `${lesson.title} | ${SITE_NAME}`);
+  const seoDescription =
+    resolveSeoDescription(lesson.metaDescription, stripHtml(lesson.content || '')) || undefined;
+  const image = lesson.featuredImageUrl || '';
 
   return {
-    title: `${lesson.title} | The School of Mathematics`,
+    title: { absolute: seoTitle },
+    description: seoDescription,
     alternates: { canonical },
     robots: { index: true, follow: true },
     openGraph: {
-      title: lesson.title,
+      title: seoTitle,
+      description: seoDescription,
+      images: image ? [{ url: image }] : [],
       type: 'article',
       url: `${SITE_URL}${canonical}`,
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title: seoTitle,
+      description: seoDescription,
+      images: image ? [image] : [],
     },
   };
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
+import { invalidateLessonsCache } from '@/lib/lesson-service';
 import { generateSlug } from '@/lib/utils';
 
 
@@ -83,6 +84,8 @@ export async function POST(request: NextRequest) {
       pdfUrl,
       allowPreview,
       order,
+      metaTitle,
+      metaDescription,
     } = body;
 
     if (!title || typeof title !== 'string') {
@@ -133,11 +136,20 @@ export async function POST(request: NextRequest) {
         pdfUrl: (pdfUrl != null && String(pdfUrl).trim()) ? String(pdfUrl).trim() : null,
         allowPreview: allowPreview === true || allowPreview === 'true',
         order: (order != null && order !== '') ? Math.max(0, Math.floor(Number(order))) : 0,
+        metaTitle:
+          metaTitle != null && String(metaTitle).trim() !== ''
+            ? String(metaTitle).trim()
+            : null,
+        metaDescription:
+          metaDescription != null && String(metaDescription).trim() !== ''
+            ? String(metaDescription).trim()
+            : null,
       },
       include: {
         module: { include: { course: true } },
       },
     });
+    invalidateLessonsCache();
     return NextResponse.json(lesson);
   } catch (error: any) {
     console.error('POST /api/admin/lessons:', error);

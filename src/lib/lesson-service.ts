@@ -1,7 +1,12 @@
-import { unstable_cache } from 'next/cache';
+import { revalidateTag, unstable_cache } from 'next/cache';
 import { prisma } from './db';
 
 const LESSONS_CACHE_TAG = 'lessons';
+
+/** À appeler après toute mutation de leçon côté admin. */
+export function invalidateLessonsCache() {
+  revalidateTag(LESSONS_CACHE_TAG);
+}
 
 const getLessonByIdOrSlugCached = unstable_cache(
   async (idOrSlug: string) => {
