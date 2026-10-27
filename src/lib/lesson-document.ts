@@ -22,7 +22,9 @@ function unwrapEditorDocument(content: string): string {
   const escaped =
     content.includes('&lt;!DOCTYPE') ||
     content.includes('&lt;html') ||
-    content.includes('&lt;body');
+    content.includes('&lt;body') ||
+    content.includes('&lt;style') ||
+    content.includes('&lt;div');
   if (!escaped) return content;
 
   const text = content
@@ -61,19 +63,27 @@ function cleanLessonHtml(html: string): string {
 }
 
 /**
- * Reconstruit une leçon enregistrée comme page HTML complète.
- * Retourne null quand le contenu est déjà du HTML d'éditeur classique.
+ * Décode le HTML éventuellement échappé par l'éditeur rich-text,
+ * puis extrait CSS + corps (document complet ou fragment avec <style>).
+ * Retourne null si le contenu est vide après nettoyage.
  */
 export function prepareLessonDocument(content: string): LessonDocument | null {
   if (!content) return null;
   const source = unwrapEditorDocument(content).trim();
+  if (!source) return null;
+
   const isDocument = /^<!DOCTYPE/i.test(source) || /^<html[\s>]/i.test(source);
-  if (!isDocument) return null;
+  const hasStyle = /<style\b/i.test(source);
+  if (!isDocument && !hasStyle) {
+    // Fragment HTML classique (sans CSS embarqué) : laisser le caller gérer.
+    return null;
+  }
 
   const css = scopeCss(sanitizeCss(extractEmbeddedCss(source)));
   const bodyMatch = source.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
-  const body = cleanLessonHtml(bodyMatch?.[1] ?? source).trim();
-  if (!body) return null;
+  const rawBody = bodyMatch?.[1] ?? source.replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '');
+  const body = cleanLessonHtml(rawBody).trim();
+  if (!body && !css) return null;
 
   return { html: body, css };
 }

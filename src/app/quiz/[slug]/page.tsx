@@ -3,13 +3,14 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
-import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
+import LessonDocumentView from '@/components/Lesson/LessonDocument';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import QuizQuestionsSeoContent from '@/components/SEO/QuizQuestionsSeoContent';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import { SITE_URL, ADSENSE_CONFIG } from '@/lib/constants';
 import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
-import { sanitizeHtml } from '@/lib/sanitize-html';
+import { extractEmbeddedCss, sanitizeCss, sanitizeHtml } from '@/lib/sanitize-html';
+import { prepareLessonDocument } from '@/lib/lesson-document';
 import { buildQuizIntro, extractQuestionSnippets } from '@/lib/seo-content';
 import { resolveSeoDescription, resolveSeoTitle, buildQuizPublicTitle } from '@/lib/seo-meta';
 import DisplayAd from '@/components/Ads/DisplayAd';
@@ -146,7 +147,16 @@ export default async function QuizPage({ params }: PageProps) {
   // Texte d'intro visible : excerpt HTML, sinon meta description SEO, sinon intro générée
   const seoIntroText = (quiz.metaDescription || '').trim();
   const explanationHtml = (quiz.explanation || '').trim();
-  const hasExplanation = stripHtml(explanationHtml).replace(/\s+/g, ' ').trim().length > 0;
+  const explanationDocument = prepareLessonDocument(explanationHtml);
+  const explanationCss = explanationDocument
+    ? ''
+    : sanitizeCss(extractEmbeddedCss(explanationHtml));
+  const explanationBody = explanationDocument
+    ? ''
+    : sanitizeHtml(explanationHtml);
+  const hasExplanation =
+    Boolean(explanationDocument) ||
+    stripHtml(explanationHtml).replace(/\s+/g, ' ').trim().length > 0;
 
   // Ne pas afficher "Level" si vide ou ancienne valeur par défaut "Moyen"
   const showDifficulty = difficulty && String(difficulty).trim() !== '' && difficulty !== 'Moyen';
@@ -286,21 +296,34 @@ export default async function QuizPage({ params }: PageProps) {
             </div>
           </div>
 
-          {hasExplanation && (
-            <section className="mb-12 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Explanation</h2>
-              <div className="prose prose-lg max-w-none text-gray-700">
-                <SafeHtmlRenderer html={explanationHtml} renderMath />
-              </div>
-            </section>
-          )}
-
           {/* Questions SSR (sr-only) — HTML initial crawlable sans JS */}
           <QuizQuestionsSeoContent quiz={quiz} />
 
           <QuizPlayer quiz={quiz} />
 
-          {/* Ad loin des boutons de réponse (après le player) */}
+          {hasExplanation && (
+            <section className="mt-12 mb-12 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-lg overflow-hidden">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Explanation</h2>
+              {explanationDocument ? (
+                <LessonDocumentView
+                  html={explanationDocument.html}
+                  css={explanationDocument.css}
+                />
+              ) : (
+                <div className="quiz-explanation">
+                  {explanationCss ? (
+                    <style dangerouslySetInnerHTML={{ __html: explanationCss }} />
+                  ) : null}
+                  <div
+                    className="prose prose-lg max-w-none text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: explanationBody }}
+                  />
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Ad loin des boutons de réponse (après le player + explanation) */}
           {ADSENSE_CONFIG.clientId ? (
             <div className="mt-10 mb-12" aria-label="Advertisement">
               <DisplayAd />
