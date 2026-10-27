@@ -1,4 +1,4 @@
-import { extractEmbeddedCss, sanitizeCss } from '@/lib/sanitize-html';
+import { extractEmbeddedCss, sanitizeCss, sanitizeHtml } from '@/lib/sanitize-html';
 
 export type LessonDocument = {
   html: string;
@@ -17,21 +17,34 @@ function decodeEntities(value: string): string {
     .replace(/&amp;/g, '&');
 }
 
+function hasEscapedHtmlTags(content: string): boolean {
+  return /&lt;\/?[a-zA-Z!]/.test(content);
+}
+
 /** Le contenu collé dans l'éditeur est un document HTML, une ligne par paragraphe. */
 function unwrapEditorDocument(content: string): string {
-  const escaped =
-    content.includes('&lt;!DOCTYPE') ||
-    content.includes('&lt;html') ||
-    content.includes('&lt;body') ||
-    content.includes('&lt;style') ||
-    content.includes('&lt;div');
-  if (!escaped) return content;
+  if (!hasEscapedHtmlTags(content)) return content;
 
   const text = content
     .replace(/<\/p>\s*<p[^>]*>/gi, '\n')
     .replace(/<\/?p[^>]*>/gi, '')
+    .replace(/<\/?span[^>]*>/gi, '')
     .replace(/<br\s*\/?>/gi, '\n');
   return decodeEntities(text);
+}
+
+/** Transforme le texte décodé en HTML : lignes HTML gardées, texte brut en <p>. */
+function linesToHtml(source: string): string {
+  return source
+    .split(/\n+/)
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return '';
+      if (/^</.test(trimmed)) return trimmed;
+      return `<p>${trimmed}</p>`;
+    })
+    .filter(Boolean)
+    .join('\n');
 }
 
 function scopeCss(css: string): string {
@@ -69,14 +82,19 @@ function cleanLessonHtml(html: string): string {
  */
 export function prepareLessonDocument(content: string): LessonDocument | null {
   if (!content) return null;
-  const source = unwrapEditorDocument(content).trim();
+  let source = unwrapEditorDocument(content).trim();
   if (!source) return null;
 
   const isDocument = /^<!DOCTYPE/i.test(source) || /^<html[\s>]/i.test(source);
   const hasStyle = /<style\b/i.test(source);
-  if (!isDocument && !hasStyle) {
+  const wasEscaped = hasEscapedHtmlTags(content);
+  if (!isDocument && !hasStyle && !wasEscaped) {
     // Fragment HTML classique (sans CSS embarqué) : laisser le caller gérer.
     return null;
+  }
+
+  if (wasEscaped && !isDocument) {
+    source = linesToHtml(source);
   }
 
   const css = scopeCss(sanitizeCss(extractEmbeddedCss(source)));
@@ -86,4 +104,25 @@ export function prepareLessonDocument(content: string): LessonDocument | null {
   if (!body && !css) return null;
 
   return { html: body, css };
+}
+
+/**
+ * Prépare le HTML/CSS d'une explication quiz (éditeurs rich-text ou source HTML brute).
+ * Décode les balises échappées (&lt;h1&gt;…) pour qu'elles s'affichent réellement.
+ */
+export function prepareExplanationContent(content: string): LessonDocument | null {
+  if (!content?.trim()) return null;
+
+  const fromDocument = prepareLessonDocument(content);
+  if (fromDocument) {
+    return {
+      html: sanitizeHtml(fromDocument.html),
+      css: fromDocument.css,
+    };
+  }
+
+  const html = sanitizeHtml(content).trim();
+  const css = sanitizeCss(extractEmbeddedCss(content));
+  if (!html && !css) return null;
+  return { html, css: css ? scopeCss(css) : '' };
 }

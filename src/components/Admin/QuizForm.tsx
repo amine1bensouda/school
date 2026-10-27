@@ -489,15 +489,21 @@ export default function QuizForm({ initialData }: QuizFormProps) {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Explanation
+                Explanation (HTML / CSS)
               </label>
               <p className="text-xs text-gray-500 mb-2">
-                Shown on the public quiz page. Leave empty to hide the block.
+                Shown under the quiz on the public page. Paste raw HTML and optional{' '}
+                <code className="text-xs">&lt;style&gt;</code> CSS. Leave empty to hide the block.
               </p>
-              <RichTextEditor
+              <textarea
                 value={formData.explanation}
-                onChange={(value) => setFormData((prev) => ({ ...prev, explanation: value }))}
-                placeholder="Write an explanation for this quiz..."
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, explanation: e.target.value }))
+                }
+                rows={12}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm"
+                placeholder={'<h1>Hello</h1>\n<style>\nh1 { color: #111; }\n</style>'}
+                spellCheck={false}
               />
             </div>
           </div>
