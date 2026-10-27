@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
+import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import QuizQuestionsSeoContent from '@/components/SEO/QuizQuestionsSeoContent';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
@@ -144,6 +145,8 @@ export default async function QuizPage({ params }: PageProps) {
   });
   // Texte d'intro visible : excerpt HTML, sinon meta description SEO, sinon intro générée
   const seoIntroText = (quiz.metaDescription || '').trim();
+  const explanationHtml = (quiz.explanation || '').trim();
+  const hasExplanation = stripHtml(explanationHtml).replace(/\s+/g, ' ').trim().length > 0;
 
   // Ne pas afficher "Level" si vide ou ancienne valeur par défaut "Moyen"
   const showDifficulty = difficulty && String(difficulty).trim() !== '' && difficulty !== 'Moyen';
@@ -282,6 +285,15 @@ export default async function QuizPage({ params }: PageProps) {
               )}
             </div>
           </div>
+
+          {hasExplanation && (
+            <section className="mb-12 rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-lg">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Explanation</h2>
+              <div className="prose prose-lg max-w-none text-gray-700">
+                <SafeHtmlRenderer html={explanationHtml} renderMath />
+              </div>
+            </section>
+          )}
 
           {/* Questions SSR (sr-only) — HTML initial crawlable sans JS */}
           <QuizQuestionsSeoContent quiz={quiz} />

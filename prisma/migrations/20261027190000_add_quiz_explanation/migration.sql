@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "quizzes" ADD COLUMN IF NOT EXISTS "explanation" TEXT;

@@ -13,6 +13,8 @@ export interface Quiz {
   excerpt: {
     rendered: string;
   };
+  /** Editorial explanation shown on the public quiz page */
+  explanation?: string | null;
   /** SEO overrides (Google title / description) */
   metaTitle?: string | null;
   metaDescription?: string | null;

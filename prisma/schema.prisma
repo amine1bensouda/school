@@ -79,6 +79,7 @@ model Quiz {
   slug             String         @unique
   description      String?
   excerpt          String?
+  explanation      String?
   metaTitle        String?
   metaDescription  String?
   duration         Int            @default(10)

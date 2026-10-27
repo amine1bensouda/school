@@ -496,6 +496,7 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
     excerpt: {
       rendered: prismaQuiz.excerpt || '',
     },
+    explanation: prismaQuiz.explanation || null,
     metaTitle: prismaQuiz.metaTitle || null,
     metaDescription: prismaQuiz.metaDescription || null,
     featured_media: 0,

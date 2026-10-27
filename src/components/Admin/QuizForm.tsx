@@ -51,6 +51,7 @@ interface QuizFormData {
   moduleId: string;
   description: string;
   excerpt: string;
+  explanation: string;
   metaTitle: string;
   metaDescription: string;
   duration?: number;
@@ -81,6 +82,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
     moduleId: '',
     description: '',
     excerpt: '',
+    explanation: '',
     metaTitle: '',
     metaDescription: '',
     duration: undefined,
@@ -483,6 +485,19 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 value={formData.excerpt}
                 onChange={(value) => setFormData((prev) => ({ ...prev, excerpt: value }))}
                 placeholder="Enter quiz excerpt..."
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Explanation
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Shown on the public quiz page. Leave empty to hide the block.
+              </p>
+              <RichTextEditor
+                value={formData.explanation}
+                onChange={(value) => setFormData((prev) => ({ ...prev, explanation: value }))}
+                placeholder="Write an explanation for this quiz..."
               />
             </div>
           </div>
