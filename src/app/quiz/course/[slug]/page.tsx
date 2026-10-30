@@ -2,10 +2,12 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import CourseSchema from '@/components/SEO/CourseSchema';
 import CourseLanding from '@/components/Course/CourseLanding';
+import LessonDocumentView from '@/components/Lesson/LessonDocument';
 import { getCourseBySlug, getPublishedCoursesSummary } from '@/lib/course-service';
 import { getCourseGuide } from '@/lib/course-guides';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { lessonDisplayTitle, stripHtml } from '@/lib/utils';
+import { prepareExplanationContent } from '@/lib/lesson-document';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 
 export const revalidate = 300;
@@ -67,6 +69,22 @@ export default async function CoursePage({ params }: PageProps) {
 
   if (slug !== course.slug) {
     permanentRedirect(`/quiz/course/${encodeURIComponent(course.slug)}`);
+  }
+
+  const customLanding = prepareExplanationContent(course.landingHtml || '');
+  if (customLanding && (customLanding.html.trim() || customLanding.css.trim())) {
+    return (
+      <>
+        <CourseSchema
+          slug={course.slug}
+          title={course.title}
+          description={course.description}
+          moduleCount={course.modules.length}
+          totalQuizzes={course.modules.reduce((sum, module) => sum + module.quizzes.length, 0)}
+        />
+        <LessonDocumentView html={customLanding.html} css={customLanding.css} />
+      </>
+    );
   }
 
   const guide = getCourseGuide(course.slug);

@@ -49,6 +49,7 @@ export async function getCourseBySlug(slug: string) {
         title: true,
         slug: true,
         description: true,
+        landingHtml: true,
         metaTitle: true,
         metaDescription: true,
         createdAt: true,

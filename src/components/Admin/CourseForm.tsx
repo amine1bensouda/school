@@ -11,6 +11,7 @@ interface CourseFormData {
   title: string;
   slug: string;
   description: string;
+  landingHtml: string;
   metaTitle: string;
   metaDescription: string;
   status: 'published' | 'draft';
@@ -27,6 +28,7 @@ export default function CourseForm({ initialData }: CourseFormProps) {
     title: '',
     slug: '',
     description: '',
+    landingHtml: '',
     metaTitle: '',
     metaDescription: '',
     status: 'draft',
@@ -65,6 +67,7 @@ export default function CourseForm({ initialData }: CourseFormProps) {
         title: formData.title,
         slug: formData.slug,
         description: formData.description || '',
+        landingHtml: formData.landingHtml || null,
         metaTitle: formData.metaTitle || null,
         metaDescription: formData.metaDescription || null,
         ...(formData.status && { status: formData.status }),
@@ -160,6 +163,26 @@ export default function CourseForm({ initialData }: CourseFormProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Landing page (HTML / CSS)</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            If filled, this code replaces the public course page. Paste raw HTML and optional{' '}
+            <code className="text-xs">&lt;style&gt;</code> CSS. Leave empty to keep the default page.
+          </p>
+        </div>
+        <textarea
+          value={formData.landingHtml}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, landingHtml: e.target.value }))
+          }
+          rows={16}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm"
+          placeholder={'<section>\n  <h1>Free PSAT 8/9 Math Practice</h1>\n</section>\n<style>\nsection { padding: 48px; }\n</style>'}
+          spellCheck={false}
+        />
       </div>
 
       <SeoFields

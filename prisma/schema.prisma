@@ -13,6 +13,7 @@ model Course {
   title           String
   slug            String   @unique
   description     String?
+  landingHtml     String?
   metaTitle       String?
   metaDescription String?
   status          String   @default("draft")
