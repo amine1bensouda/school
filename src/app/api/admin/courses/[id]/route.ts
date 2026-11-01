@@ -20,7 +20,7 @@ export async function PUT(
     const courseId = resolvedParams.id;
 
     const body = await request.json();
-    const { title, slug, description, landingHtml, metaTitle, metaDescription, status } = body;
+    const { title, slug, description, landingHtml, world, metaTitle, metaDescription, status } = body;
 
     const updateData: any = {};
     if (title !== undefined && title !== null) {
@@ -37,6 +37,9 @@ export async function PUT(
         landingHtml != null && String(landingHtml).trim() !== ''
           ? String(landingHtml)
           : null;
+    }
+    if (world !== undefined) {
+      updateData.world = world === 'k12' ? 'k12' : 'quiz';
     }
     if (metaTitle !== undefined) {
       updateData.metaTitle = metaTitle || null;
@@ -133,7 +136,7 @@ export async function PATCH(
     const courseId = resolvedParams.id;
 
     const body = await request.json();
-    const { status, title, slug, description, landingHtml, metaTitle, metaDescription } = body;
+    const { status, title, slug, description, landingHtml, world, metaTitle, metaDescription } = body;
 
     // Valider le statut si fourni
     if (status && status !== 'published' && status !== 'draft') {
@@ -161,6 +164,9 @@ export async function PATCH(
         landingHtml != null && String(landingHtml).trim() !== ''
           ? String(landingHtml)
           : null;
+    }
+    if (world !== undefined) {
+      updateData.world = world === 'k12' ? 'k12' : 'quiz';
     }
     if (metaTitle !== undefined) {
       updateData.metaTitle = metaTitle || null;

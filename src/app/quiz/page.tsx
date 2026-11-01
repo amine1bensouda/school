@@ -68,21 +68,34 @@ export default async function QuizListPage() {
         </div>
 
         {courses.length > 0 ? (
-          <div className="space-y-8">
-            <h2 className="sr-only">Available courses</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  id={course.id}
-                  title={course.title}
-                  description={course.description}
-                  moduleCount={course.moduleCount}
-                  totalQuizzes={course.totalQuizzes}
-                  slug={course.slug}
-                />
-              ))}
-            </div>
+          <div className="space-y-14">
+            {[
+              { key: 'quiz' as const, title: 'Quiz' },
+              { key: 'k12' as const, title: 'K-12' },
+            ].map((section) => {
+              const sectionCourses = courses.filter((course) => course.world === section.key);
+              if (sectionCourses.length === 0) return null;
+              return (
+                <section key={section.key} className="space-y-6">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                    {section.title}
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {sectionCourses.map((course) => (
+                      <CourseCard
+                        key={course.id}
+                        id={course.id}
+                        title={course.title}
+                        description={course.description}
+                        moduleCount={course.moduleCount}
+                        totalQuizzes={course.totalQuizzes}
+                        slug={course.slug}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20">

@@ -102,6 +102,7 @@ export const getPublishedCoursesSummaryData = unstable_cache(
         title: true,
         slug: true,
         description: true,
+        world: true,
         modules: {
           orderBy: { order: 'asc' },
           select: {
@@ -131,6 +132,7 @@ export const getPublishedCoursesSummaryData = unstable_cache(
       title: course.title,
       slug: course.slug,
       description: course.description,
+      world: course.world === 'k12' ? 'k12' : 'quiz',
       moduleCount: course._count.modules,
       totalQuizzes: course.modules.reduce(
         (sum, module) => sum + module.quizzes.length,

@@ -66,6 +66,15 @@ export default async function AdminCoursesPage() {
                     </span>
                     <span
                       className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        course.world === 'k12'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-violet-100 text-violet-800'
+                      }`}
+                    >
+                      {course.world === 'k12' ? 'K-12' : 'Quiz'}
+                    </span>
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full ${
                         course.status === 'published'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-gray-100 text-gray-800'

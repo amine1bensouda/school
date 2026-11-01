@@ -14,6 +14,8 @@ model Course {
   slug            String   @unique
   description     String?
   landingHtml     String?
+  /** Monde public : "quiz" | "k12" */
+  world           String   @default("quiz")
   metaTitle       String?
   metaDescription String?
   status          String   @default("draft")
@@ -24,6 +26,8 @@ model Course {
   @@map("courses")
   @@index([status])
   @@index([slug])
+  @@index([world])
+  @@index([status, world])
   @@index([status, createdAt(sort: Desc)])
 }
 

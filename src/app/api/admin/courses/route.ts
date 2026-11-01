@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, slug, description, landingHtml, metaTitle, metaDescription, status } = body;
+    const { title, slug, description, landingHtml, world, metaTitle, metaDescription, status } = body;
 
     if (!title || !slug) {
       return NextResponse.json(
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
           landingHtml != null && String(landingHtml).trim() !== ''
             ? String(landingHtml)
             : null,
+        world: world === 'k12' ? 'k12' : 'quiz',
         metaTitle:
           metaTitle != null && String(metaTitle).trim() !== ''
             ? String(metaTitle).trim()

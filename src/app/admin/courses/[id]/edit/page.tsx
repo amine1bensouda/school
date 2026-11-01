@@ -25,6 +25,7 @@ export default async function EditCoursePage({
     slug: course.slug,
     description: course.description || '',
     landingHtml: course.landingHtml || '',
+    world: course.world === 'k12' ? 'k12' : 'quiz',
     metaTitle: course.metaTitle || '',
     metaDescription: course.metaDescription || '',
     status: (course.status as 'published' | 'draft') || 'draft',

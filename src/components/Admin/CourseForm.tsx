@@ -12,6 +12,7 @@ interface CourseFormData {
   slug: string;
   description: string;
   landingHtml: string;
+  world: 'quiz' | 'k12';
   metaTitle: string;
   metaDescription: string;
   status: 'published' | 'draft';
@@ -29,6 +30,7 @@ export default function CourseForm({ initialData }: CourseFormProps) {
     slug: '',
     description: '',
     landingHtml: '',
+    world: 'quiz',
     metaTitle: '',
     metaDescription: '',
     status: 'draft',
@@ -68,6 +70,7 @@ export default function CourseForm({ initialData }: CourseFormProps) {
         slug: formData.slug,
         description: formData.description || '',
         landingHtml: formData.landingHtml || null,
+        world: formData.world === 'k12' ? 'k12' : 'quiz',
         metaTitle: formData.metaTitle || null,
         metaDescription: formData.metaDescription || null,
         ...(formData.status && { status: formData.status }),
@@ -144,6 +147,27 @@ export default function CourseForm({ initialData }: CourseFormProps) {
                 onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
                 placeholder="Enter course description..."
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                World *
+              </label>
+              <select
+                value={formData.world}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    world: e.target.value === 'k12' ? 'k12' : 'quiz',
+                  }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              >
+                <option value="quiz">Quiz</option>
+                <option value="k12">K-12</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Section on the public Exams page (/quiz)
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
