@@ -2,7 +2,6 @@ import { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import { getBlogPostFromDB } from '@/lib/blog-data';
-import CommentsSection from '@/components/Comments/CommentsSection';
 import { extractEmbeddedCss, sanitizeHtml } from '@/lib/sanitize-html';
 import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
@@ -104,8 +103,6 @@ export default async function BlogPostPage({ params }: PageProps) {
             prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline"
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
         />
-
-        <CommentsSection targetType="blog" targetSlug={post.slug} />
       </div>
     </div>
   );
