@@ -44,7 +44,6 @@ export default async function CoursePracticePage({ params }: PageProps) {
   }
 
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module.quizzes.length, 0);
-  const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
   const courseHref = `/quiz/course/${encodeURIComponent(course.slug)}`;
 
   return (
@@ -72,11 +71,6 @@ export default async function CoursePracticePage({ params }: PageProps) {
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold">
                   {totalQuizzes} quiz{totalQuizzes !== 1 ? 'zes' : ''}
                 </span>
-                {totalLessons > 0 && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
-                    {totalLessons} lesson{totalLessons !== 1 ? 's' : ''}
-                  </span>
-                )}
               </div>
               <h1 className="text-2xl min-[400px]:text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight tracking-tight">
                 {course.title}
@@ -94,14 +88,12 @@ export default async function CoursePracticePage({ params }: PageProps) {
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Practice by topic</h2>
               {course.modules.map((module) => {
                 const quizCount = module.quizzes.length;
-                const lessonCount = module.lessons.length;
-                if (quizCount === 0 && lessonCount === 0) return null;
+                if (quizCount === 0) return null;
                 return (
                   <Accordion
                     key={module.id}
                     title={module.title}
                     quizCount={quizCount}
-                    lessonCount={lessonCount}
                     defaultOpen={false}
                     icon={
                       <svg className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,31 +101,10 @@ export default async function CoursePracticePage({ params }: PageProps) {
                       </svg>
                     }
                   >
-                    <div className="space-y-6">
-                      {lessonCount > 0 && (
-                        <div>
-                          <h3 className="text-sm font-semibold text-gray-700 mb-3">Lessons</h3>
-                          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {module.lessons.map((lesson) => (
-                              <li key={lesson.id}>
-                                <Link
-                                  href={`/quiz/lesson/${lesson.slug}`}
-                                  className="block rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all"
-                                >
-                                  <span className="font-medium text-gray-900">{lesson.title}</span>
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {quizCount > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                          {module.quizzes.map((quiz, index) => (
-                            <QuizCard key={quiz.prismaId ?? quiz.id} quiz={quiz} index={index} />
-                          ))}
-                        </div>
-                      )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                      {module.quizzes.map((quiz, index) => (
+                        <QuizCard key={quiz.prismaId ?? quiz.id} quiz={quiz} index={index} />
+                      ))}
                     </div>
                   </Accordion>
                 );
