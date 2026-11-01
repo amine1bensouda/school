@@ -35,6 +35,7 @@ export default function Header() {
 
   const practiceActive = pathname === '/additional-resources' || Boolean(pathname?.startsWith('/pages/'));
   const examsActive = Boolean(pathname?.startsWith('/quiz') && !pathname.includes('/lesson'));
+  const k12Active = Boolean(pathname === '/k12' || pathname?.startsWith('/k12/'));
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-xl bg-white/95 shadow-lg">
@@ -89,6 +90,17 @@ export default function Header() {
             >
               Exams
               {examsActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
+              )}
+            </Link>
+            <Link
+              href="/k12"
+              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+                k12Active ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
+              }`}
+            >
+              K-12
+              {k12Active && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
               )}
             </Link>
@@ -261,6 +273,15 @@ export default function Header() {
                 }`}
               >
                 Exams
+              </Link>
+              <Link
+                href="/k12"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                  k12Active ? 'bg-gray-100' : 'hover:bg-gray-50'
+                }`}
+              >
+                K-12
               </Link>
               <Link
                 href="/additional-resources"

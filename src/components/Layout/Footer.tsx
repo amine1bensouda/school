@@ -79,6 +79,14 @@ export default function Footer() {
                   All Exams
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/k12"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  K-12
+                </Link>
+              </li>
             </ul>
           </div>
 
