@@ -254,6 +254,19 @@ model CustomPage {
   @@index([status, publishedAt])
 }
 
+/** Contenu éditable de pages fixes du site (singleton id = default). */
+model SiteSettings {
+  id                   String   @id @default("default")
+  examsTitle           String   @default("All Exams")
+  examsSubtitle        String   @default("{count} exams available to test your knowledge and improve your mathematics skills")
+  examsLandingHtml     String?
+  examsMetaTitle       String?
+  examsMetaDescription String?
+  updatedAt            DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
 model QuizAttempt {
   id             String   @id @default(cuid())
   userId         String

@@ -3,18 +3,42 @@ import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
 import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 import CourseCard from '@/components/Quiz/CourseCard';
+import LessonDocumentView from '@/components/Lesson/LessonDocument';
 import { getPublishedCoursesSummary } from '@/lib/course-service';
+import { prepareExplanationContent } from '@/lib/lesson-document';
+import {
+  formatExamsSubtitle,
+  getExamsPageSettings,
+} from '@/lib/site-settings';
+import { resolveSeoDescription, resolveSeoTitle } from '@/lib/seo-meta';
 import { SITE_NAME } from '@/lib/constants';
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: 'All Exams',
-  description: `Discover all our practice exams and interactive tests on mathematics topics at ${SITE_NAME}`,
-  alternates: { canonical: '/quiz' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getExamsPageSettings();
+  const title = resolveSeoTitle(settings.examsMetaTitle, settings.examsTitle);
+  const description =
+    resolveSeoDescription(
+      settings.examsMetaDescription,
+      settings.examsSubtitle.replace(/\{count\}/g, 'practice'),
+      `Discover all our practice exams and interactive tests on mathematics topics at ${SITE_NAME}`
+    ) || undefined;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: '/quiz' },
+  };
+}
 
 export default async function QuizListPage() {
+  const settings = await getExamsPageSettings();
+  const customLanding = prepareExplanationContent(settings.examsLandingHtml || '');
+  if (customLanding && (customLanding.html.trim() || customLanding.css.trim())) {
+    return <LessonDocumentView html={customLanding.html} css={customLanding.css} />;
+  }
+
   let courses: Awaited<ReturnType<typeof getPublishedCoursesSummary>> = [];
   try {
     courses = await getPublishedCoursesSummary();
@@ -26,6 +50,7 @@ export default async function QuizListPage() {
     (sum, course) => sum + (course.totalQuizzes || 0),
     0
   );
+  const subtitle = formatExamsSubtitle(settings.examsSubtitle, totalQuizzes);
 
   return (
     <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
@@ -35,11 +60,10 @@ export default async function QuizListPage() {
       <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
         <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-6 leading-tight">
-            All Exams
+            {settings.examsTitle}
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block">
-            {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your
-            knowledge and improve your mathematics skills
+            {subtitle}
           </p>
         </div>
 
