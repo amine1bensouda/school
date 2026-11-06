@@ -3,8 +3,7 @@ import { SITE_URL } from '@/lib/constants';
 
 /**
  * robots.txt dynamique.
- * Les quiz individuels restent crawlables pour que Google lise leur noindex.
- * Les pages de cours et de leçons restent autorisées.
+ * Les quiz individuels, les cours et les leçons sont autorisés à l'indexation.
  * AdsBot-Google ignore User-agent: * → Allow explicite requis.
  */
 export default function robots(): MetadataRoute.Robots {

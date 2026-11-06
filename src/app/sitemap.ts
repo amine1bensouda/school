@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
-import { getPublishedCoursesSummaryData, getAllPublishedPagesData } from '@/lib/cache';
+import { getPublishedCoursesSummaryData, getAllPublishedPagesData, getPublishedQuizListData } from '@/lib/cache';
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -128,6 +128,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
+  const quizzes = await safeSection('quizzes', () => getPublishedQuizListData(), []);
+  const seenQuizSlugs = new Set<string>();
+  const quizPages: MetadataRoute.Sitemap = quizzes.flatMap((quiz) => {
+    if (!quiz.slug || seenQuizSlugs.has(quiz.slug)) return [];
+    seenQuizSlugs.add(quiz.slug);
+    return [{
+      url: `${baseUrl}/quiz/${encodeURIComponent(quiz.slug)}`,
+      lastModified: quiz.updatedAt ? new Date(quiz.updatedAt) : currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }];
+  });
+
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
     lastModified: post.date ? new Date(post.date) : currentDate,
@@ -148,6 +161,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages,
     ...coursePages,
+    ...quizPages,
     ...lessonPages,
     ...blogPages,
     ...customPages,
