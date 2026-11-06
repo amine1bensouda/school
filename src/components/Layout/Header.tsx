@@ -24,6 +24,7 @@ export default function Header() {
 
   useEffect(() => {
     setLegalMenuOpen(false);
+    setMobileMenuOpen(false);
   }, [pathname]);
 
   const isActive = (path: string) => {
@@ -39,19 +40,19 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-xl bg-white/95 shadow-lg">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4 py-3 xl:py-4">
+        <div className="flex items-center justify-between gap-3">
           <Link
             href="/"
-            className="flex items-center gap-3 group animate-fade-in"
+            className="flex items-center gap-2 sm:gap-3 min-w-0 group animate-fade-in"
           >
-            <div className="relative ml-3">
+            <div className="relative flex-shrink-0">
               {logoError ? (
-                <div className="w-14 h-14 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border-2 border-gray-800">
+                <div className="w-10 h-10 xl:w-14 xl:h-14 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border-2 border-gray-800">
                   <span className="text-white font-bold text-xl">M</span>
                 </div>
               ) : (
-                <div className="w-14 h-14 relative rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 bg-white border-2 border-gray-200 p-2">
+                <div className="w-10 h-10 xl:w-14 xl:h-14 relative rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 bg-white border-2 border-gray-200 p-1.5 xl:p-2">
                   <Image
                     src="/logo_maths.svg"
                     alt={`Logo ${SITE_NAME}`}
@@ -65,15 +66,15 @@ export default function Header() {
               )}
               <div className="absolute -inset-1 bg-gradient-to-r from-gray-800 via-black to-gray-800 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-black to-gray-900 bg-clip-text text-transparent tracking-tight">
+            <span className="text-base sm:text-lg xl:text-2xl font-bold bg-gradient-to-r from-gray-900 via-black to-gray-900 bg-clip-text text-transparent tracking-tight leading-tight truncate">
               {SITE_NAME}
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-0">
+          <nav className="hidden xl:flex items-center gap-0">
             <Link
               href="/"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+              className={`px-3 2xl:px-5 py-3 font-medium text-gray-800 transition-colors relative whitespace-nowrap ${
                 isActive('/') ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
@@ -84,7 +85,7 @@ export default function Header() {
             </Link>
             <Link
               href="/quiz"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+              className={`px-3 2xl:px-5 py-3 font-medium text-gray-800 transition-colors relative whitespace-nowrap ${
                 examsActive ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
@@ -95,7 +96,7 @@ export default function Header() {
             </Link>
             <Link
               href="/k12"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+              className={`px-3 2xl:px-5 py-3 font-medium text-gray-800 transition-colors relative whitespace-nowrap ${
                 k12Active ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
@@ -106,7 +107,7 @@ export default function Header() {
             </Link>
             <Link
               href="/additional-resources"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+              className={`px-3 2xl:px-5 py-3 font-medium text-gray-800 transition-colors relative whitespace-nowrap ${
                 practiceActive ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
@@ -117,7 +118,7 @@ export default function Header() {
             </Link>
             <Link
               href="/about-us"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+              className={`px-3 2xl:px-5 py-3 font-medium text-gray-800 transition-colors relative whitespace-nowrap ${
                 isActive('/about-us')
                   ? 'bg-gray-100 rounded-lg'
                   : 'hover:text-gray-900'
@@ -130,7 +131,7 @@ export default function Header() {
             </Link>
             <Link
               href="/blogs"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+              className={`px-3 2xl:px-5 py-3 font-medium text-gray-800 transition-colors relative whitespace-nowrap ${
                 isActive('/blogs') ? 'bg-gray-100 rounded-lg' : 'hover:text-gray-900'
               }`}
             >
@@ -145,7 +146,7 @@ export default function Header() {
                 onClick={() => {
                   setLegalMenuOpen((prev) => !prev);
                 }}
-                className={`px-6 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center gap-2 ${
+                className={`px-3 2xl:px-5 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center gap-2 ${
                   isActive('/terms-of-service') ||
                   isActive('/privacy-policy') ||
                   isActive('/contact-us')
@@ -196,7 +197,7 @@ export default function Header() {
           </nav>
 
           {/* User menu */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden xl:flex items-center gap-2 flex-shrink-0">
             {user ? (
               <Link
                 href="/dashboard"
@@ -229,7 +230,7 @@ export default function Header() {
           {/* Menu mobile */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-black rounded-xl hover:bg-gray-100 transition-all duration-200 border border-gray-200 hover:border-gray-300"
+            className="xl:hidden p-2 text-gray-700 hover:text-black rounded-xl hover:bg-gray-100 transition-all duration-200 border border-gray-200 hover:border-gray-300 flex-shrink-0"
             aria-label="Menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +255,7 @@ export default function Header() {
 
         {/* Menu mobile déroulant */}
         {mobileMenuOpen && (
-          <nav className="md:hidden mt-4 pb-4 animate-slide-in border-t border-gray-200 pt-4">
+          <nav className="xl:hidden mt-4 pb-4 animate-slide-in border-t border-gray-200 pt-4">
             <div className="flex flex-col gap-1">
               <Link
                 href="/"
